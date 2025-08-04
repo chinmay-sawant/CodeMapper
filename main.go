@@ -242,6 +242,7 @@ func serveVisualization(addr, jsonFile, vizDir string) {
 
 	// API endpoint to serve the generated JSON data.
 	mux.HandleFunc("/api/codemap", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		http.ServeFile(w, r, jsonFile)
 	})
 
@@ -256,6 +257,10 @@ func serveVisualization(addr, jsonFile, vizDir string) {
 			w.Header().Set("Content-Type", "text/css")
 		} else if strings.HasSuffix(r.URL.Path, ".js") {
 			w.Header().Set("Content-Type", "application/javascript")
+		} else if strings.HasSuffix(r.URL.Path, ".mjs") {
+			w.Header().Set("Content-Type", "application/javascript")
+		} else if strings.HasSuffix(r.URL.Path, ".json") {
+			w.Header().Set("Content-Type", "application/json")
 		}
 		// Let the standard file server do the rest of the work.
 		fs.ServeHTTP(w, r)
