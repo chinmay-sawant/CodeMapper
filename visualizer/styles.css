@@ -1,0 +1,92 @@
+/* General body and dark theme setup */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #1a192b; /* n8n-like dark background */
+  color: #f0f0f0;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* React Flow canvas styling */
+.react-flow__viewport {
+  background-color: #1a192b;
+  background-image: radial-gradient(#3a394b 1px, transparent 0);
+  background-size: 30px 30px;
+}
+
+/* Custom Node Styling */
+.react-flow__node {
+  background: #2a293b;
+  border: 1px solid #4a495b;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  font-size: 12px;
+  min-width: 200px;
+}
+
+/* Node header (for package name) */
+.node-header {
+  background-color: #3a394b;
+  padding: 6px 12px;
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+  font-weight: bold;
+  color: #b0b0b0;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+/* Node body (for function name and file path) */
+.node-body {
+  padding: 12px;
+}
+
+.node-body .function-name {
+  font-weight: bold;
+  font-size: 14px;
+  color: #fff;
+}
+
+.node-body .file-path {
+  font-family: monospace;
+  font-size: 11px;
+  color: #8a8a9e;
+  margin-top: 6px;
+}
+
+/* Style for connection lines (edges) */
+.react-flow__edge-path {
+  stroke: #8a8a9e;
+  stroke-width: 2;
+}
+
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #00aaff;
+}
+
+/* Styling for the UI controls (zoom, lock, etc.) */
+.react-flow__controls button {
+  background-color: #2a293b;
+  border-bottom: 1px solid #4a495b;
+  color: #f0f0f0;
+}
+.react-flow__controls button:hover {
+  background-color: #3a394b;
+}
+
+/* Minimap styling */
+.react-flow__minimap {
+  background-color: #1a192b;
+  border: 1px solid #4a495b;
+}
+.react-flow__minimap-mask {
+  fill: rgba(42, 41, 59, 0.7);
+}
