@@ -36,6 +36,32 @@ CodeMapper automates this process, saving you countless hours and reducing the r
 
 ---
 
+## Installation 🛠️
+
+### Backend (Go)
+
+1. **Install Go** (if not already):  
+   [Download Go](https://go.dev/dl/)
+
+2. **Install Go dependencies**:  
+   ```bash
+   cd CodeMapper
+   go mod tidy
+   ```
+
+### Frontend (Visualizer)
+
+1. **Install Node.js** (if not already):  
+   [Download Node.js](https://nodejs.org/)
+
+2. **Install frontend dependencies**:  
+   ```bash
+   cd CodeMapper
+   npm install
+   ```
+
+---
+
 ## Quick Start 🚦
 
 ```bash
