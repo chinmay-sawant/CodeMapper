@@ -18,6 +18,7 @@ const getLayoutedElements = (mappings) => {
 
     if (!mappings) return { initialNodes: [], initialEdges: [] };
 
+    // First pass: create all nodes (order independent)
     mappings.forEach(m => {
         const def = m.definition;
         if (!nodes.has(def.id)) {
@@ -48,31 +49,61 @@ const getLayoutedElements = (mappings) => {
                     type: 'customNode',
                 });
             }
+        });
+    });
+
+    // Second pass: create all edges (order independent)
+    mappings.forEach(m => {
+        const def = m.definition;
+        m.callSites.forEach(cs => {
             edges.add({ id: `${cs.callerId}->${def.id}`, source: cs.callerId, target: def.id });
         });
     });
 
     const nodeArray = Array.from(nodes.values());
-    const x_gap = 350;
-    const y_gap = 180;
-    const columns = [];
-
+    
+    // Find nodes that have no incoming edges (root nodes)
+    const hasIncomingEdge = new Set();
+    edges.forEach(edge => {
+        hasIncomingEdge.add(edge.target);
+    });
+    
+    // Initialize depths: root nodes start at depth 0
     nodeArray.forEach(node => {
-        let maxDepth = 0;
+        if (!hasIncomingEdge.has(node.id)) {
+            nodeDepths.set(node.id, 0);
+        } else {
+            nodeDepths.set(node.id, -1); // Mark as unprocessed
+        }
+    });
+
+    // Iteratively calculate depths using topological approach
+    let changed = true;
+    while (changed) {
+        changed = false;
         edges.forEach(edge => {
-            if (edge.target === node.id) {
-                const sourceDepth = nodeDepths.get(edge.source) || 0;
-                if (sourceDepth + 1 > maxDepth) {
-                    maxDepth = sourceDepth + 1;
-                }
+            const sourceDepth = nodeDepths.get(edge.source);
+            const targetDepth = nodeDepths.get(edge.target);
+            
+            // If source has a depth and target doesn't, or target depth is too small
+            if (sourceDepth >= 0 && (targetDepth < 0 || targetDepth <= sourceDepth)) {
+                nodeDepths.set(edge.target, sourceDepth + 1);
+                changed = true;
             }
         });
-        nodeDepths.set(node.id, maxDepth);
-        
-        if (!columns[maxDepth]) {
-            columns[maxDepth] = [];
+    }
+
+    // Group nodes by depth
+    const columns = [];
+    const x_gap = 350;
+    const y_gap = 180;
+    
+    nodeArray.forEach(node => {
+        const depth = Math.max(0, nodeDepths.get(node.id) || 0);
+        if (!columns[depth]) {
+            columns[depth] = [];
         }
-        columns[maxDepth].push(node);
+        columns[depth].push(node);
     });
 
     columns.forEach((col, colIndex) => {
