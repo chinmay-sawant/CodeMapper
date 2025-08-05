@@ -5,6 +5,9 @@ import ReactFlow, {
   Background,
   applyNodeChanges,
   applyEdgeChanges,
+  MarkerType,
+  Handle,
+  Position,
 } from 'reactflow';
 
 // This is a simple algorithm to arrange nodes in columns.
@@ -45,7 +48,7 @@ const getLayoutedElements = (mappings) => {
                     type: 'customNode',
                 });
             }
-            edges.add({ id: `${cs.callerId}->${def.id}`, source: cs.callerId, target: def.id, animated: true, style: { strokeWidth: 2 } });
+            edges.add({ id: `${cs.callerId}->${def.id}`, source: cs.callerId, target: def.id });
         });
     });
 
@@ -81,20 +84,38 @@ const getLayoutedElements = (mappings) => {
         });
     });
     
-    return { initialNodes: nodeArray, initialEdges: Array.from(edges) };
+    // Ensure edges have proper structure
+    const edgeArray = Array.from(edges).map(edge => ({
+        ...edge,
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: '#ffffff', strokeWidth: 2 }
+    }));
+    
+    return { initialNodes: nodeArray, initialEdges: edgeArray };
 };
 
 const CustomNode = ({ data }) => {
     return React.createElement(
         'div',
         { className: 'custom-node' },
+        React.createElement(Handle, {
+            type: 'target',
+            position: Position.Left,
+            style: { background: '#555' }
+        }),
         React.createElement('div', { className: 'node-header' }, data.package),
         React.createElement(
             'div',
             { className: 'node-body' },
             React.createElement('div', { className: 'function-name' }, data.name),
             React.createElement('div', { className: 'file-path' }, data.filePath)
-        )
+        ),
+        React.createElement(Handle, {
+            type: 'source',
+            position: Position.Right,
+            style: { background: '#555' }
+        })
     );
 };
 
@@ -106,6 +127,16 @@ function Flow() {
 
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
+
+    // Define default options to apply to all edges.
+    // We use a custom class ('n8n-edge') to target edges with our CSS.
+    const defaultEdgeOptions = {
+        type: 'smoothstep',
+        className: 'n8n-edge',
+        markerEnd: {
+            type: MarkerType.ArrowClosed,
+        },
+    };
 
     useEffect(() => {
         async function fetchData() {
@@ -142,7 +173,8 @@ function Flow() {
             onEdgesChange: onEdgesChange,
             nodeTypes: nodeTypes,
             fitView: true,
-            fitViewOptions: { padding: 0.1 }
+            fitViewOptions: { padding: 0.1 },
+            defaultEdgeOptions: defaultEdgeOptions
         },
         React.createElement(Controls),
         React.createElement(Background)

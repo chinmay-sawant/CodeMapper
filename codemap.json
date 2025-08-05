@@ -1,22 +1,6 @@
 [
   {
     "definition": {
-      "id": "employeeapp/internal/routes.SetupRouter",
-      "name": "SetupRouter",
-      "package": "employeeapp/internal/routes",
-      "filePath": "internal/routes/routes.go",
-      "line": 10
-    },
-    "callSites": [
-      {
-        "filePath": "main.go",
-        "line": 12,
-        "callerId": "employeeapp.main"
-      }
-    ]
-  },
-  {
-    "definition": {
       "id": "employeeapp/internal/config.Load",
       "name": "Load",
       "package": "employeeapp/internal/config",
@@ -76,6 +60,22 @@
         "filePath": "internal/routes/routes.go",
         "line": 15,
         "callerId": "employeeapp/internal/routes.SetupRouter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "employeeapp/internal/routes.SetupRouter",
+      "name": "SetupRouter",
+      "package": "employeeapp/internal/routes",
+      "filePath": "internal/routes/routes.go",
+      "line": 10
+    },
+    "callSites": [
+      {
+        "filePath": "main.go",
+        "line": 12,
+        "callerId": "employeeapp.main"
       }
     ]
   }

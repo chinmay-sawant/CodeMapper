@@ -31,7 +31,6 @@ body {
   min-width: 200px;
 }
 
-/* Node header (for package name) */
 .node-header {
   background-color: #3a394b;
   padding: 6px 12px;
@@ -43,7 +42,6 @@ body {
   font-size: 10px;
 }
 
-/* Node body (for function name and file path) */
 .node-body {
   padding: 12px;
 }
@@ -61,18 +59,33 @@ body {
   margin-top: 6px;
 }
 
-/* Style for connection lines (edges) */
-.react-flow__edge-path {
-  stroke: #8a8a9e;
-  stroke-width: 2;
+/*
+  FINAL, HIGH-SPECIFICITY EDGE STYLING
+*/
+
+/* 1. Define the animation for the "marching ants" effect */
+@keyframes dash-animation {
+  to {
+    stroke-dashoffset: -20;
+  }
 }
 
-.react-flow__edge.selected .react-flow__edge-path,
-.react-flow__edge:hover .react-flow__edge-path {
-  stroke: #00aaff;
+/* 2. Target edges with our custom 'n8n-edge' class for high specificity */
+.react-flow__edge.n8n-edge .react-flow__edge-path {
+  stroke: #ffffff; /* Use pure white for max visibility */
+  stroke-width: 1.5;
+
+  /* Apply the animation */
+  stroke-dasharray: 10;
+  animation: dash-animation 1s linear infinite;
 }
 
-/* Styling for the UI controls (zoom, lock, etc.) */
+/* 3. Style the arrowhead for our custom edges */
+.react-flow__edge.n8n-edge .react-flow__marker-end path {
+  fill: #ffffff;
+}
+
+/* UI controls and minimap styling */
 .react-flow__controls button {
   background-color: #2a293b;
   border-bottom: 1px solid #4a495b;
@@ -82,7 +95,6 @@ body {
   background-color: #3a394b;
 }
 
-/* Minimap styling */
 .react-flow__minimap {
   background-color: #1a192b;
   border: 1px solid #4a495b;
