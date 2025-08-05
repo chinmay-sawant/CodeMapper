@@ -56,7 +56,11 @@ http://localhost:8080
 - `codemap.json` - Generated dependency map
 
 ---
+## Screenshot 🖼️
 
+![CodeMapper Screenshot](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image1.png)
+
+---
 ## License 📄
 
 MIT
