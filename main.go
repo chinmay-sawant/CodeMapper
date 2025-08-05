@@ -49,6 +49,7 @@ func main() {
 	outputFile := flag.String("out", "codemap.json", "Output JSON file name")
 	serveAddr := flag.String("serve", "", "If set, serves visualization on this address (e.g., ':8080')")
 	visualizerDir := flag.String("viz-dir", "./visualizer", "Path to the visualizer's static files (html, css, js)")
+	internalModules := flag.String("internal", "", "Comma-separated list of module prefixes to treat as internal (e.g., 'bitbucket.org/yourorg,github.com/yourorg')")
 	flag.Parse()
 
 	modulePath, err := getModulePath(*targetPath)
@@ -56,6 +57,16 @@ func main() {
 		log.Fatalf("Error finding module path in %s: %v", *targetPath, err)
 	}
 	log.Printf("Analyzing module: %s\n", modulePath)
+
+	// Parse internal module prefixes
+	var internalPrefixes []string
+	if *internalModules != "" {
+		internalPrefixes = strings.Split(*internalModules, ",")
+		for i, prefix := range internalPrefixes {
+			internalPrefixes[i] = strings.TrimSpace(prefix)
+		}
+		log.Printf("Internal module prefixes: %v\n", internalPrefixes)
+	}
 
 	log.Println("Pass 1: Finding all function definitions...")
 	err = filepath.WalkDir(*targetPath, func(path string, d fs.DirEntry, err error) error {
@@ -77,7 +88,7 @@ func main() {
 			return err
 		}
 		if !d.IsDir() && strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go") {
-			findCallSites(path, *targetPath, modulePath)
+			findCallSites(path, *targetPath, modulePath, internalPrefixes)
 		}
 		return nil
 	})
@@ -163,7 +174,22 @@ func findDefinitions(filePath, rootPath, modulePath string) {
 	})
 }
 
-func findCallSites(filePath, rootPath, modulePath string) {
+func isInternalModule(modulePath string, currentModule string, internalPrefixes []string) bool {
+	// Always include the current module
+	if strings.HasPrefix(modulePath, currentModule) {
+		return true
+	}
+
+	// Check against internal prefixes
+	for _, prefix := range internalPrefixes {
+		if strings.HasPrefix(modulePath, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+func findCallSites(filePath, rootPath, modulePath string, internalPrefixes []string) {
 	node, err := parser.ParseFile(fileSet, filePath, nil, 0)
 	if err != nil {
 		log.Printf("Warning: Could not parse %s: %v\n", filePath, err)
@@ -177,7 +203,7 @@ func findCallSites(filePath, rootPath, modulePath string) {
 	currentFullPkgPath := filepath.ToSlash(filepath.Join(modulePath, currentPkgDir))
 	importMap := make(map[string]string)
 	for _, imp := range node.Imports {
-		path := strings.Trim(imp.Path.Value, `"`)
+		path := strings.Trim(imp.Path.Value, `"`) // Trimmed here
 		if imp.Name != nil {
 			importMap[imp.Name.Name] = path
 		} else {
@@ -211,12 +237,21 @@ func findCallSites(filePath, rootPath, modulePath string) {
 			pkgAlias := pkgIdent.Name
 			funcName := fun.Sel.Name
 			if fullPkgPath, found := importMap[pkgAlias]; found {
-				calleeID = fmt.Sprintf("%s.%s", fullPkgPath, funcName)
+				// Only process calls to functions within our own module or internal modules
+				if isInternalModule(fullPkgPath, modulePath, internalPrefixes) {
+					calleeID = fmt.Sprintf("%s.%s", fullPkgPath, funcName)
+				} else {
+					// Skip external library calls - don't create mappings for them
+					return true
+				}
 			}
 		case *ast.Ident:
 			funcName := fun.Name
+			// Only process calls within the current package
 			calleeID = fmt.Sprintf("%s.%s", currentFullPkgPath, funcName)
 		}
+
+		// Only add call sites for functions that we have definitions for (within our module)
 		if m, found := mappings[calleeID]; found {
 			if currentCallerID != "" {
 				m.CallSites = append(m.CallSites, CallSite{
