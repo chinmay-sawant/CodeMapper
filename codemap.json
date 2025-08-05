@@ -1,22 +1,6 @@
 [
   {
     "definition": {
-      "id": "employeeapp/internal/config.Load",
-      "name": "Load",
-      "package": "employeeapp/internal/config",
-      "filePath": "internal/config/config.go",
-      "line": 9
-    },
-    "callSites": [
-      {
-        "filePath": "main.go",
-        "line": 10,
-        "callerId": "employeeapp.main"
-      }
-    ]
-  },
-  {
-    "definition": {
       "id": "employeeapp/internal/handlers.NewEmployeeHandler",
       "name": "NewEmployeeHandler",
       "package": "employeeapp/internal/handlers",
@@ -75,6 +59,22 @@
       {
         "filePath": "main.go",
         "line": 12,
+        "callerId": "employeeapp.main"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "employeeapp/internal/config.Load",
+      "name": "Load",
+      "package": "employeeapp/internal/config",
+      "filePath": "internal/config/config.go",
+      "line": 9
+    },
+    "callSites": [
+      {
+        "filePath": "main.go",
+        "line": 10,
         "callerId": "employeeapp.main"
       }
     ]
