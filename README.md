@@ -66,8 +66,18 @@ CodeMapper automates this process, saving you countless hours and reducing the r
 
 ```bash
 # 1. Build and run CodeMapper on your Go project
+go get golang.org/x/mod/modfile
+go get golang.org/x/mod/module
+
 go run main.go -path ./YourGoProject -serve :8080
-go run main.go -path ./EmployeeApp -serve :8080
+go run main.go -path ./YourGoProject -serve :8080
+go run main.go -path "./EmployeeApp" -out "local-map.json"
+
+go run main.go -path "./EmployeeApp" -analyze-deps "bitbucket.org/ggwp" -out "full-codemap.json" -serve ":8080" -skip "ent,generated"
+
+if autodetection fails, you can specify GOPATH:
+go run main.go -path "C:\Users\acer\projects\my-app" -gopath "C:\Users\acer\go\pkg\mod" -analyze-deps "bitbucket.org/ggwp" -out "full-codemap.json"
+
 
 # 2. Open your browser and visit
 http://localhost:8080

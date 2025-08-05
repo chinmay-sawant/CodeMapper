@@ -85,6 +85,23 @@ body {
   fill: #ffffff;
 }
 
+/* 4. Highlighted edge styling for path backtracking */
+.react-flow__edge.n8n-edge.highlighted .react-flow__edge-path {
+  stroke: #ffd700 !important; /* Golden yellow for highlighted path */
+  stroke-width: 3 !important;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
+
+  /* Keep the animation but make it more prominent */
+  stroke-dasharray: 15 5;
+  animation: dash-animation 0.8s linear infinite;
+}
+
+/* 5. Highlighted arrowhead for path backtracking */
+.react-flow__edge.n8n-edge.highlighted .react-flow__marker-end path {
+  fill: #ffd700 !important;
+  filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.8));
+}
+
 /* UI controls and minimap styling */
 .react-flow__controls button {
   background-color: #2a293b;

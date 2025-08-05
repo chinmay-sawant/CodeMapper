@@ -119,17 +119,22 @@ const getLayoutedElements = (mappings) => {
     const edgeArray = Array.from(edges).map(edge => ({
         ...edge,
         type: 'smoothstep',
-        animated: true,
-        style: { stroke: '#ffffff', strokeWidth: 2 }
+        className: 'n8n-edge'
     }));
     
     return { initialNodes: nodeArray, initialEdges: edgeArray };
 };
 
-const CustomNode = ({ data }) => {
+const CustomNode = ({ data, id }) => {
     return React.createElement(
         'div',
-        { className: 'custom-node' },
+        { 
+            className: 'custom-node',
+            style: data.highlighted ? { 
+                border: '2px solid #ffd700',
+                boxShadow: '0 0 10px rgba(255, 215, 0, 0.5)'
+            } : {}
+        },
         React.createElement(Handle, {
             type: 'target',
             position: Position.Left,
@@ -155,9 +160,129 @@ const nodeTypes = { customNode: CustomNode };
 function Flow() {
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
+    const [highlightedPath, setHighlightedPath] = useState(new Set());
+    const [currentlyClickedNode, setCurrentlyClickedNode] = useState(null);
 
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
+
+    // Function to find path from clicked node to root nodes
+    const findPathToRoot = useCallback((targetNodeId, currentEdges) => {
+        const pathNodes = new Set();
+        const pathEdges = new Set();
+        const visited = new Set();
+        
+        // Find all edges that point TO other nodes (outgoing edges from perspective of data flow)
+        const incomingEdges = new Map();
+        currentEdges.forEach(edge => {
+            if (!incomingEdges.has(edge.target)) {
+                incomingEdges.set(edge.target, []);
+            }
+            incomingEdges.get(edge.target).push(edge);
+        });
+        
+        // DFS to find path to root (nodes with no incoming edges)
+        const dfs = (nodeId) => {
+            if (visited.has(nodeId)) return false;
+            visited.add(nodeId);
+            
+            pathNodes.add(nodeId);
+            
+            const incoming = incomingEdges.get(nodeId) || [];
+            if (incoming.length === 0) {
+                // This is a root node, path found
+                return true;
+            }
+            
+            // Try each incoming edge
+            for (const edge of incoming) {
+                if (dfs(edge.source)) {
+                    pathEdges.add(edge.id);
+                    return true;
+                }
+            }
+            
+            // No path to root through this node
+            pathNodes.delete(nodeId);
+            return false;
+        };
+        
+        dfs(targetNodeId);
+        return { pathNodes, pathEdges };
+    }, []);
+
+    const onNodeClick = useCallback((event, node) => {
+        // If clicking the same node again, clear highlighting
+        if (currentlyClickedNode === node.id) {
+            setNodes(currentNodes => 
+                currentNodes.map(n => ({
+                    ...n,
+                    data: {
+                        ...n.data,
+                        highlighted: false
+                    }
+                }))
+            );
+            
+            setEdges(currentEdges =>
+                currentEdges.map(edge => ({
+                    ...edge,
+                    className: 'n8n-edge',
+                }))
+            );
+            
+            setHighlightedPath(new Set());
+            setCurrentlyClickedNode(null);
+            return;
+        }
+
+        const { pathNodes, pathEdges } = findPathToRoot(node.id, edges);
+        
+        // Update nodes with highlighting
+        setNodes(currentNodes => 
+            currentNodes.map(n => ({
+                ...n,
+                data: {
+                    ...n.data,
+                    highlighted: pathNodes.has(n.id)
+                }
+            }))
+        );
+        
+        // Update edges with highlighting
+        setEdges(currentEdges =>
+            currentEdges.map(edge => ({
+                ...edge,
+                className: pathEdges.has(edge.id) ? 'n8n-edge highlighted' : 'n8n-edge',
+            }))
+        );
+        
+        setHighlightedPath(pathEdges);
+        setCurrentlyClickedNode(node.id);
+    }, [edges, findPathToRoot, currentlyClickedNode]);
+
+    // Clear highlighting when clicking on empty space
+    const onPaneClick = useCallback(() => {
+        setNodes(currentNodes => 
+            currentNodes.map(n => ({
+                ...n,
+                data: {
+                    ...n.data,
+                    highlighted: false
+                }
+            }))
+        );
+        
+        setEdges(currentEdges =>
+            currentEdges.map(edge => ({
+                ...edge,
+                className: 'n8n-edge',
+            }))
+        );
+        
+        setHighlightedPath(new Set());
+        setCurrentlyClickedNode(null);
+    }, []);
 
     // Define default options to apply to all edges.
     // We use a custom class ('n8n-edge') to target edges with our CSS.
@@ -202,6 +327,8 @@ function Flow() {
             edges: edges,
             onNodesChange: onNodesChange,
             onEdgesChange: onEdgesChange,
+            onNodeClick: onNodeClick,
+            onPaneClick: onPaneClick,
             nodeTypes: nodeTypes,
             fitView: true,
             fitViewOptions: { padding: 0.1 },
