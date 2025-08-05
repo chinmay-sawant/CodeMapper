@@ -1,0 +1,82 @@
+[
+  {
+    "definition": {
+      "id": "employeeapp/internal/routes.SetupRouter",
+      "name": "SetupRouter",
+      "package": "employeeapp/internal/routes",
+      "filePath": "internal/routes/routes.go",
+      "line": 10
+    },
+    "callSites": [
+      {
+        "filePath": "main.go",
+        "line": 12,
+        "callerId": "employeeapp.main"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "employeeapp/internal/config.Load",
+      "name": "Load",
+      "package": "employeeapp/internal/config",
+      "filePath": "internal/config/config.go",
+      "line": 9
+    },
+    "callSites": [
+      {
+        "filePath": "main.go",
+        "line": 10,
+        "callerId": "employeeapp.main"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "employeeapp/internal/handlers.NewEmployeeHandler",
+      "name": "NewEmployeeHandler",
+      "package": "employeeapp/internal/handlers",
+      "filePath": "internal/handlers/employee.go",
+      "line": 12
+    },
+    "callSites": [
+      {
+        "filePath": "internal/routes/routes.go",
+        "line": 18,
+        "callerId": "employeeapp/internal/routes.SetupRouter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "employeeapp/internal/middleware.CORS",
+      "name": "CORS",
+      "package": "employeeapp/internal/middleware",
+      "filePath": "internal/middleware/cors.go",
+      "line": 5
+    },
+    "callSites": [
+      {
+        "filePath": "internal/routes/routes.go",
+        "line": 14,
+        "callerId": "employeeapp/internal/routes.SetupRouter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "employeeapp/internal/middleware.Logger",
+      "name": "Logger",
+      "package": "employeeapp/internal/middleware",
+      "filePath": "internal/middleware/logger.go",
+      "line": 10
+    },
+    "callSites": [
+      {
+        "filePath": "internal/routes/routes.go",
+        "line": 15,
+        "callerId": "employeeapp/internal/routes.SetupRouter"
+      }
+    ]
+  }
+]
