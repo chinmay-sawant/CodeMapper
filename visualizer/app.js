@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import ReactFlow, {
   Controls,
@@ -10,127 +10,13 @@ import ReactFlow, {
   Position,
 } from 'reactflow';
 
-// This is a simple algorithm to arrange nodes in columns.
-const getLayoutedElements = (mappings) => {
-    const nodes = new Map();
-    const edges = new Set();
-    const nodeDepths = new Map();
-
-    if (!mappings) return { initialNodes: [], initialEdges: [] };
-
-    // First pass: create all nodes (order independent)
-    mappings.forEach(m => {
-        const def = m.definition;
-        if (!nodes.has(def.id)) {
-            nodes.set(def.id, {
-                id: def.id,
-                data: { 
-                    package: def.package,
-                    name: def.name,
-                    filePath: `${def.filePath}:${def.line}`
-                },
-                position: { x: 0, y: 0 },
-                type: 'customNode',
-            });
-        }
-        
-        m.callSites.forEach(cs => {
-            if (!nodes.has(cs.callerId)) {
-                const simpleName = cs.callerId.split('.').pop();
-                const simplePackage = cs.callerId.substring(0, cs.callerId.lastIndexOf('.'));
-                 nodes.set(cs.callerId, {
-                    id: cs.callerId,
-                    data: {
-                        package: simplePackage,
-                        name: simpleName,
-                        filePath: cs.filePath
-                    },
-                    position: { x: 0, y: 0 },
-                    type: 'customNode',
-                });
-            }
-        });
-    });
-
-    // Second pass: create all edges (order independent)
-    mappings.forEach(m => {
-        const def = m.definition;
-        m.callSites.forEach(cs => {
-            edges.add({ id: `${cs.callerId}->${def.id}`, source: cs.callerId, target: def.id });
-        });
-    });
-
-    const nodeArray = Array.from(nodes.values());
-    
-    // Find nodes that have no incoming edges (root nodes)
-    const hasIncomingEdge = new Set();
-    edges.forEach(edge => {
-        hasIncomingEdge.add(edge.target);
-    });
-    
-    // Initialize depths: root nodes start at depth 0
-    nodeArray.forEach(node => {
-        if (!hasIncomingEdge.has(node.id)) {
-            nodeDepths.set(node.id, 0);
-        } else {
-            nodeDepths.set(node.id, -1); // Mark as unprocessed
-        }
-    });
-
-    // Iteratively calculate depths using topological approach
-    let changed = true;
-    while (changed) {
-        changed = false;
-        edges.forEach(edge => {
-            const sourceDepth = nodeDepths.get(edge.source);
-            const targetDepth = nodeDepths.get(edge.target);
-            
-            // If source has a depth and target doesn't, or target depth is too small
-            if (sourceDepth >= 0 && (targetDepth < 0 || targetDepth <= sourceDepth)) {
-                nodeDepths.set(edge.target, sourceDepth + 1);
-                changed = true;
-            }
-        });
-    }
-
-    // Group nodes by depth
-    const columns = [];
-    const x_gap = 350;
-    const y_gap = 180;
-    
-    nodeArray.forEach(node => {
-        const depth = Math.max(0, nodeDepths.get(node.id) || 0);
-        if (!columns[depth]) {
-            columns[depth] = [];
-        }
-        columns[depth].push(node);
-    });
-
-    columns.forEach((col, colIndex) => {
-        col.forEach((node, nodeIndex) => {
-            node.position = {
-                x: colIndex * x_gap,
-                y: nodeIndex * y_gap
-            };
-        });
-    });
-    
-    // Ensure edges have proper structure
-    const edgeArray = Array.from(edges).map(edge => ({
-        ...edge,
-        type: 'smoothstep',
-        className: 'n8n-edge'
-    }));
-    
-    return { initialNodes: nodeArray, initialEdges: edgeArray };
-};
-
-const CustomNode = ({ data, id }) => {
+// Memoized CustomNode component for performance
+const CustomNode = React.memo(({ data }) => {
     return React.createElement(
         'div',
-        { 
+        {
             className: 'custom-node',
-            style: data.highlighted ? { 
+            style: data.highlighted ? {
                 border: '2px solid #ffd700',
                 boxShadow: '0 0 10px rgba(255, 215, 0, 0.5)'
             } : {}
@@ -138,6 +24,7 @@ const CustomNode = ({ data, id }) => {
         React.createElement(Handle, {
             type: 'target',
             position: Position.Left,
+            isConnectable: false,
             style: { background: '#555' }
         }),
         React.createElement('div', { className: 'node-header' }, data.package),
@@ -150,175 +37,167 @@ const CustomNode = ({ data, id }) => {
         React.createElement(Handle, {
             type: 'source',
             position: Position.Right,
+            isConnectable: false,
             style: { background: '#555' }
         })
     );
-};
+});
 
 const nodeTypes = { customNode: CustomNode };
 
 function Flow() {
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
-    const [highlightedPath, setHighlightedPath] = useState(new Set());
+    const [isLoading, setIsLoading] = useState(true);
     const [currentlyClickedNode, setCurrentlyClickedNode] = useState(null);
 
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
 
-    // Function to find path from clicked node to root nodes
     const findPathToRoot = useCallback((targetNodeId, currentEdges) => {
-        const pathNodes = new Set();
+        const pathNodes = new Set([targetNodeId]);
         const pathEdges = new Set();
-        const visited = new Set();
-        
-        // Find all edges that point TO other nodes (outgoing edges from perspective of data flow)
-        const incomingEdges = new Map();
+        const queue = [targetNodeId];
+        const visited = new Set([targetNodeId]);
+
+        const incomingEdgesMap = new Map();
         currentEdges.forEach(edge => {
-            if (!incomingEdges.has(edge.target)) {
-                incomingEdges.set(edge.target, []);
+            if (!incomingEdgesMap.has(edge.target)) {
+                incomingEdgesMap.set(edge.target, []);
             }
-            incomingEdges.get(edge.target).push(edge);
+            incomingEdgesMap.get(edge.target).push(edge);
         });
-        
-        // DFS to find path to root (nodes with no incoming edges)
-        const dfs = (nodeId) => {
-            if (visited.has(nodeId)) return false;
-            visited.add(nodeId);
-            
-            pathNodes.add(nodeId);
-            
-            const incoming = incomingEdges.get(nodeId) || [];
-            if (incoming.length === 0) {
-                // This is a root node, path found
-                return true;
-            }
-            
-            // Try each incoming edge
+
+        while (queue.length > 0) {
+            const currentNodeId = queue.shift();
+            const incoming = incomingEdgesMap.get(currentNodeId) || [];
             for (const edge of incoming) {
-                if (dfs(edge.source)) {
+                if (!visited.has(edge.source)) {
+                    visited.add(edge.source);
+                    pathNodes.add(edge.source);
                     pathEdges.add(edge.id);
-                    return true;
+                    queue.push(edge.source);
                 }
             }
-            
-            // No path to root through this node
-            pathNodes.delete(nodeId);
-            return false;
-        };
-        
-        dfs(targetNodeId);
+        }
         return { pathNodes, pathEdges };
     }, []);
 
     const onNodeClick = useCallback((event, node) => {
-        // If clicking the same node again, clear highlighting
         if (currentlyClickedNode === node.id) {
-            setNodes(currentNodes => 
-                currentNodes.map(n => ({
-                    ...n,
-                    data: {
-                        ...n.data,
-                        highlighted: false
-                    }
-                }))
-            );
-            
-            setEdges(currentEdges =>
-                currentEdges.map(edge => ({
-                    ...edge,
-                    className: 'n8n-edge',
-                }))
-            );
-            
-            setHighlightedPath(new Set());
             setCurrentlyClickedNode(null);
+            setNodes(nds => nds.map(n => n.data.highlighted ? { ...n, data: { ...n.data, highlighted: false } } : n));
+            setEdges(eds => eds.map(e => e.className.includes('highlighted') ? { ...e, className: 'n8n-edge' } : e));
             return;
         }
 
         const { pathNodes, pathEdges } = findPathToRoot(node.id, edges);
-        
-        // Update nodes with highlighting
-        setNodes(currentNodes => 
-            currentNodes.map(n => ({
-                ...n,
-                data: {
-                    ...n.data,
-                    highlighted: pathNodes.has(n.id)
+
+        setNodes(currentNodes =>
+            currentNodes.map(n => {
+                const shouldBeHighlighted = pathNodes.has(n.id);
+                const isHighlighted = !!n.data.highlighted;
+                if (shouldBeHighlighted !== isHighlighted) {
+                    return { ...n, data: { ...n.data, highlighted: shouldBeHighlighted } };
                 }
-            }))
+                return n;
+            })
         );
-        
-        // Update edges with highlighting
+
         setEdges(currentEdges =>
-            currentEdges.map(edge => ({
-                ...edge,
-                className: pathEdges.has(edge.id) ? 'n8n-edge highlighted' : 'n8n-edge',
-            }))
+            currentEdges.map(edge => {
+                const shouldBeHighlighted = pathEdges.has(edge.id);
+                const isHighlighted = edge.className.includes('highlighted');
+                if (shouldBeHighlighted !== isHighlighted) {
+                    return { ...edge, className: shouldBeHighlighted ? 'n8n-edge highlighted' : 'n8n-edge' };
+                }
+                return edge;
+            })
         );
-        
-        setHighlightedPath(pathEdges);
+
         setCurrentlyClickedNode(node.id);
     }, [edges, findPathToRoot, currentlyClickedNode]);
 
-    // Clear highlighting when clicking on empty space
     const onPaneClick = useCallback(() => {
-        setNodes(currentNodes => 
-            currentNodes.map(n => ({
-                ...n,
-                data: {
-                    ...n.data,
-                    highlighted: false
-                }
-            }))
-        );
-        
-        setEdges(currentEdges =>
-            currentEdges.map(edge => ({
-                ...edge,
-                className: 'n8n-edge',
-            }))
-        );
-        
-        setHighlightedPath(new Set());
-        setCurrentlyClickedNode(null);
-    }, []);
+        if (currentlyClickedNode) {
+            setCurrentlyClickedNode(null);
+            setNodes(nds => nds.map(n => n.data.highlighted ? { ...n, data: { ...n.data, highlighted: false } } : n));
+            setEdges(eds => eds.map(e => e.className.includes('highlighted') ? { ...e, className: 'n8n-edge' } : e));
+        }
+    }, [currentlyClickedNode]);
 
-    // Define default options to apply to all edges.
-    // We use a custom class ('n8n-edge') to target edges with our CSS.
-    const defaultEdgeOptions = {
+    const defaultEdgeOptions = useMemo(() => ({
         type: 'smoothstep',
         className: 'n8n-edge',
         markerEnd: {
             type: MarkerType.ArrowClosed,
         },
-    };
+    }), []);
 
     useEffect(() => {
+        setIsLoading(true);
+        // *** THIS IS THE FIX ***
+        // Load the worker from the public folder using a root-relative path.
+        const worker = new Worker('/layout.worker.js');
+
+        worker.onmessage = (event) => {
+            const { initialNodes, initialEdges } = event.data;
+            setNodes(initialNodes);
+            setEdges(initialEdges);
+            setIsLoading(false);
+            worker.terminate();
+        };
+
+        worker.onerror = (event) => {
+            event.preventDefault();
+            console.error(
+                `WORKER SCRIPT ERROR:\n` +
+                `This error usually means the worker file ('/layout.worker.js') could not be found or has a syntax error.\n`+
+                `- Message: ${event.message}\n` +
+                `- Filename: ${event.filename}\n` +
+                `- Line: ${event.lineno}`
+            );
+            setNodes([{ 
+                id: 'worker-error', 
+                type: 'customNode', 
+                data: { package: 'Error', name: 'Worker script failed to load', filePath: 'Check console and network tab for details.' }, 
+                position: { x: 0, y: 0 } 
+            }]);
+            setIsLoading(false);
+            worker.terminate();
+        };
+
         async function fetchData() {
             try {
                 const response = await fetch('/api/codemap');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`API request failed with status: ${response.status}`);
+                }
                 const mappings = await response.json();
-                const { initialNodes, initialEdges } = getLayoutedElements(mappings);
-                setNodes(initialNodes);
-                setEdges(initialEdges);
+                worker.postMessage(mappings);
             } catch (error) {
-                console.error("Failed to fetch or process code map:", error);
+                console.error("Failed to fetch API data:", error);
                 setNodes([{ 
-                    id: 'error', 
+                    id: 'api-error', 
                     type: 'customNode', 
-                    data: { 
-                        package: 'Error', 
-                        name: 'Failed to load data', 
-                        filePath: 'Check console for details' 
-                    }, 
+                    data: { package: 'API Error', name: 'Could not load data from server', filePath: error.message }, 
                     position: { x: 0, y: 0 } 
                 }]);
+                setIsLoading(false);
+                worker.terminate();
             }
         }
+
         fetchData();
+        
+        return () => {
+            worker.terminate();
+        };
     }, []);
+
+    if (isLoading) {
+        return React.createElement('div', { className: 'loading-indicator' }, 'Processing large dataset, please wait...');
+    }
 
     return React.createElement(
         ReactFlow,
@@ -332,10 +211,14 @@ function Flow() {
             nodeTypes: nodeTypes,
             fitView: true,
             fitViewOptions: { padding: 0.1 },
-            defaultEdgeOptions: defaultEdgeOptions
+            defaultEdgeOptions: defaultEdgeOptions,
+            nodesDraggable: false,
+            nodesConnectable: false,
+            onlyRenderVisibleElements: true,
+            proOptions: { hideAttribution: true }
         },
         React.createElement(Controls),
-        React.createElement(Background)
+        React.createElement(Background, { variant: 'dots', gap: 12, size: 1 })
     );
 }
 
