@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/parser"
+	"go/printer" // <<< CHANGED: Added the correct printer package
 	"go/token"
 	"io/fs"
 	"log"
@@ -114,7 +115,6 @@ func main() {
 	// --- 4. Serialize and Output Results ---
 	var finalMappings []Mapping
 	for _, m := range mappings {
-		// We can add a filter here if needed, but for now, let's include all found mappings.
 		finalMappings = append(finalMappings, *m)
 	}
 
@@ -125,7 +125,7 @@ func main() {
 
 	err = os.WriteFile(*outputFile, jsonData, 0644)
 	if err != nil {
-		log.Fatalf("Error writing to %s: %v", *outputFile, err)
+		log.Fatalf("Error writing to %s: %v", err)
 	}
 	log.Printf("Successfully created mapping file: %s", *outputFile)
 
@@ -175,7 +175,6 @@ func findDependencyPaths(projectRoot, goModCache string, depPrefixes []string) (
 		for _, prefix := range depPrefixes {
 			trimmedPrefix := strings.TrimSpace(prefix)
 			if strings.HasPrefix(req.Mod.Path, trimmedPrefix) {
-				// Go encodes uppercase letters in module paths with '!' for the filesystem cache.
 				escapedPath, err := module.EscapePath(req.Mod.Path)
 				if err != nil {
 					log.Printf("Warning: could not escape module path %s: %v", req.Mod.Path, err)
@@ -191,7 +190,7 @@ func findDependencyPaths(projectRoot, goModCache string, depPrefixes []string) (
 					FSRoot:     depPath,
 					ModulePath: req.Mod.Path,
 				})
-				break // Move to the next requirement
+				break
 			}
 		}
 	}
@@ -211,7 +210,6 @@ func findDefinitions(filePath string, target AnalysisTarget) {
 	if pkgDir == "." {
 		pkgDir = ""
 	}
-	// Use filepath.Join for OS-agnostic path joining, then convert to slash for consistency in IDs.
 	fullPkgPath := filepath.ToSlash(filepath.Join(target.ModulePath, pkgDir))
 
 	ast.Inspect(node, func(n ast.Node) bool {
@@ -229,15 +227,16 @@ func findDefinitions(filePath string, target AnalysisTarget) {
 		}
 
 		if fn.Recv != nil && len(fn.Recv.List) > 0 {
-			// It's a method
 			typeExpr := fn.Recv.List[0].Type
 			buf := new(bytes.Buffer)
-			// Using ast.Fprint to get the string representation of the receiver type
-			ast.Fprint(buf, fileSet, typeExpr, nil)
+			// <<< CHANGED: Use the correct printer to convert the AST node into source code.
+			if err := printer.Fprint(buf, fileSet, typeExpr); err != nil {
+				log.Printf("Warning: could not print receiver type for %s in %s: %v", funcName, filePath, err)
+				return true // Continue inspection
+			}
 			receiverType := buf.String()
 			def.ID = fmt.Sprintf("%s.%s.%s", fullPkgPath, receiverType, funcName)
 		} else {
-			// It's a regular function
 			def.ID = fmt.Sprintf("%s.%s", fullPkgPath, funcName)
 		}
 
@@ -262,32 +261,33 @@ func (v *callSiteVisitor) Visit(n ast.Node) ast.Visitor {
 		return nil
 	}
 
-	// --- Push to stack when entering a function ---
 	if fn, ok := n.(*ast.FuncDecl); ok {
 		var callerID string
 		if fn.Recv != nil && len(fn.Recv.List) > 0 {
 			typeExpr := fn.Recv.List[0].Type
 			buf := new(bytes.Buffer)
-			ast.Fprint(buf, v.fileSet, typeExpr, nil)
-			callerID = fmt.Sprintf("%s.%s.%s", v.currentPkg, buf.String(), fn.Name.Name)
+			// <<< CHANGED: Use the correct printer to convert the AST node into source code.
+			if err := printer.Fprint(buf, v.fileSet, typeExpr); err != nil {
+				log.Printf("Warning: could not print receiver type for %s in %s: %v", fn.Name.Name, v.target.FSRoot, err)
+				// Fallback to a less specific ID if printing fails
+				callerID = fmt.Sprintf("%s.<?>%s", v.currentPkg, fn.Name.Name)
+			} else {
+				callerID = fmt.Sprintf("%s.%s.%s", v.currentPkg, buf.String(), fn.Name.Name)
+			}
 		} else {
 			callerID = fmt.Sprintf("%s.%s", v.currentPkg, fn.Name.Name)
 		}
 		v.callerIDStack = append(v.callerIDStack, callerID)
 
-		// Manually walk the function body so we can pop after it's done.
 		if fn.Body != nil {
 			ast.Walk(v, fn.Body)
 		}
 
-		// --- Pop from stack after leaving the function ---
 		v.callerIDStack = v.callerIDStack[:len(v.callerIDStack)-1]
-		return nil // We already walked the children, so don't continue.
+		return nil
 	}
 
-	// --- Identify a call site ---
 	if call, ok := n.(*ast.CallExpr); ok {
-		// Only process if we are inside a function
 		if len(v.callerIDStack) > 0 {
 			calleeID := v.resolveCalleeID(call.Fun)
 			if m, found := mappings[calleeID]; found {
@@ -295,35 +295,28 @@ func (v *callSiteVisitor) Visit(n ast.Node) ast.Visitor {
 				m.CallSites = append(m.CallSites, CallSite{
 					FilePath: filepath.ToSlash(relPath),
 					Line:     v.fileSet.Position(call.Pos()).Line,
-					CallerID: v.callerIDStack[len(v.callerIDStack)-1], // Get current caller from top of stack
+					CallerID: v.callerIDStack[len(v.callerIDStack)-1],
 				})
 			}
 		}
 	}
 
-	return v // Continue walking
+	return v
 }
 
 // resolveCalleeID determines the unique ID of the function being called.
 func (v *callSiteVisitor) resolveCalleeID(fun ast.Expr) string {
 	switch f := fun.(type) {
-	case *ast.SelectorExpr: // e.g., "fmt.Println" or "myVar.Method"
-		// Check if it's a package selector first
+	case *ast.SelectorExpr:
 		if pkgIdent, ok := f.X.(*ast.Ident); ok {
 			if fullPkgPath, found := v.importMap[pkgIdent.Name]; found {
-				// It's a call to an imported package, e.g., `pkg.Func()`
 				return fmt.Sprintf("%s.%s", fullPkgPath, f.Sel.Name)
 			}
 		}
-		// If not a known package, it could be a method call on a variable.
-		// This part is complex to resolve statically without full type checking.
-		// For now, we focus on package-level functions and methods which cover many cases.
-		// A full implementation would require `go/types`.
-
-	case *ast.Ident: // e.g., "myFunction" (a call within the same package)
+	case *ast.Ident:
 		return fmt.Sprintf("%s.%s", v.currentPkg, f.Name)
 	}
-	return "" // Could not resolve
+	return ""
 }
 
 // findCallSites prepares and runs the callSiteVisitor on a file.
@@ -345,7 +338,7 @@ func findCallSites(filePath string, target AnalysisTarget) {
 	for _, imp := range node.Imports {
 		path := strings.Trim(imp.Path.Value, `"`)
 		if imp.Name != nil {
-			if imp.Name.Name == "_" { // blank identifier
+			if imp.Name.Name == "_" {
 				continue
 			}
 			importMap[imp.Name.Name] = path
