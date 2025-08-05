@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/parser"
-	"go/printer" // <<< CHANGED: Added the correct printer package
+	"go/printer"
 	"go/token"
 	"io/fs"
 	"log"
@@ -63,7 +63,14 @@ func main() {
 	visualizerDir := flag.String("viz-dir", "./visualizer", "Path to the visualizer's static files (html, css, js)")
 	goModCache := flag.String("gopath", "", "Path to Go's module cache (GOMODCACHE). If empty, will try to auto-detect.")
 	analyzeDeps := flag.String("analyze-deps", "", "Comma-separated list of external dependency prefixes to analyze (e.g., 'bitbucket/ggwp,github.com/gin-gonic/gin')")
+	skipPatternsRaw := flag.String("skip", "", "Comma-separated list of path substrings to skip (e.g., 'ent,models,generated')") // <<< CHANGED
 	flag.Parse()
+
+	// <<< CHANGED: Process the skip patterns into a slice for easy use
+	var skipPatterns []string
+	if *skipPatternsRaw != "" {
+		skipPatterns = strings.Split(*skipPatternsRaw, ",")
+	}
 
 	if *goModCache == "" {
 		cmd := exec.Command("go", "env", "GOMODCACHE")
@@ -97,7 +104,7 @@ func main() {
 	log.Println("Pass 1: Finding all function definitions...")
 	for _, target := range analysisTargets {
 		log.Printf("Scanning definitions in %s (%s)", target.ModulePath, target.FSRoot)
-		err := walkAndProcess(target, findDefinitions)
+		err := walkAndProcess(target, skipPatterns, findDefinitions) // <<< CHANGED
 		if err != nil {
 			log.Fatalf("Error during definition scan in %s: %v", target.FSRoot, err)
 		}
@@ -106,7 +113,7 @@ func main() {
 	log.Println("Pass 2: Finding all call sites...")
 	for _, target := range analysisTargets {
 		log.Printf("Scanning call sites in %s (%s)", target.ModulePath, target.FSRoot)
-		err := walkAndProcess(target, findCallSites)
+		err := walkAndProcess(target, skipPatterns, findCallSites) // <<< CHANGED
 		if err != nil {
 			log.Fatalf("Error during call site scan in %s: %v", target.FSRoot, err)
 		}
@@ -114,8 +121,11 @@ func main() {
 
 	// --- 4. Serialize and Output Results ---
 	var finalMappings []Mapping
+	// <<< CHANGED: Filter out mappings that have no call sites.
 	for _, m := range mappings {
-		finalMappings = append(finalMappings, *m)
+		if len(m.CallSites) > 0 {
+			finalMappings = append(finalMappings, *m)
+		}
 	}
 
 	jsonData, err := json.MarshalIndent(finalMappings, "", "  ")
@@ -134,12 +144,28 @@ func main() {
 	}
 }
 
+// <<< CHANGED: Function signature updated to accept skipPatterns
 // walkAndProcess abstracts the file walking logic for a given analysis target.
-func walkAndProcess(target AnalysisTarget, processor func(filePath string, target AnalysisTarget)) error {
+func walkAndProcess(target AnalysisTarget, skipPatterns []string, processor func(filePath string, target AnalysisTarget)) error {
 	return filepath.WalkDir(target.FSRoot, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
+
+		// <<< CHANGED: Check if the path should be skipped based on user-provided patterns.
+		for _, pattern := range skipPatterns {
+			// Ensure we don't match on empty strings from the split
+			if pattern != "" && strings.Contains(path, pattern) {
+				log.Printf("Skipping path due to skip pattern '%s': %s", pattern, path)
+				// If it's a directory, skip the whole directory.
+				if d.IsDir() {
+					return filepath.SkipDir
+				}
+				// If it's a file, just skip this file.
+				return nil
+			}
+		}
+
 		if !d.IsDir() && strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go") {
 			processor(path, target)
 		}
@@ -229,10 +255,9 @@ func findDefinitions(filePath string, target AnalysisTarget) {
 		if fn.Recv != nil && len(fn.Recv.List) > 0 {
 			typeExpr := fn.Recv.List[0].Type
 			buf := new(bytes.Buffer)
-			// <<< CHANGED: Use the correct printer to convert the AST node into source code.
 			if err := printer.Fprint(buf, fileSet, typeExpr); err != nil {
 				log.Printf("Warning: could not print receiver type for %s in %s: %v", funcName, filePath, err)
-				return true // Continue inspection
+				return true
 			}
 			receiverType := buf.String()
 			def.ID = fmt.Sprintf("%s.%s.%s", fullPkgPath, receiverType, funcName)
@@ -266,10 +291,8 @@ func (v *callSiteVisitor) Visit(n ast.Node) ast.Visitor {
 		if fn.Recv != nil && len(fn.Recv.List) > 0 {
 			typeExpr := fn.Recv.List[0].Type
 			buf := new(bytes.Buffer)
-			// <<< CHANGED: Use the correct printer to convert the AST node into source code.
 			if err := printer.Fprint(buf, v.fileSet, typeExpr); err != nil {
 				log.Printf("Warning: could not print receiver type for %s in %s: %v", fn.Name.Name, v.target.FSRoot, err)
-				// Fallback to a less specific ID if printing fails
 				callerID = fmt.Sprintf("%s.<?>%s", v.currentPkg, fn.Name.Name)
 			} else {
 				callerID = fmt.Sprintf("%s.%s.%s", v.currentPkg, buf.String(), fn.Name.Name)
