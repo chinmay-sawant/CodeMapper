@@ -6,14 +6,15 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
-	"go/parser"
 	"go/token"
-	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	// Import the key package for module-aware loading
+	"golang.org/x/tools/go/packages"
 )
 
 // Definition represents a declared function, method, or constructor.
@@ -52,49 +53,70 @@ func main() {
 	internalModules := flag.String("internal", "", "Comma-separated list of module prefixes to treat as internal (e.g., 'bitbucket.org/yourorg,github.com/yourorg')")
 	flag.Parse()
 
-	modulePath, err := getModulePath(*targetPath)
-	if err != nil {
-		log.Fatalf("Error finding module path in %s: %v", *targetPath, err)
-	}
-	log.Printf("Analyzing module: %s\n", modulePath)
+	// --- REFACTORED LOGIC ---
 
-	// Parse internal module prefixes
+	// 1. Define the patterns to load. We want all packages in the target path (`./...`)
+	//    and all packages matching our internal prefixes.
+	patterns := []string{"./..."}
 	var internalPrefixes []string
 	if *internalModules != "" {
 		internalPrefixes = strings.Split(*internalModules, ",")
 		for i, prefix := range internalPrefixes {
-			internalPrefixes[i] = strings.TrimSpace(prefix)
+			trimmedPrefix := strings.TrimSpace(prefix)
+			internalPrefixes[i] = trimmedPrefix
+			// Add the internal module pattern to be loaded by go/packages
+			patterns = append(patterns, trimmedPrefix+"/...")
 		}
-		log.Printf("Internal module prefixes: %v\n", internalPrefixes)
+	}
+	log.Printf("Loading packages with patterns: %v", patterns)
+
+	// 2. Configure and run packages.Load. This is the core change.
+	//    It will find and parse all Go files for the specified patterns,
+	//    including those in the module cache.
+	cfg := &packages.Config{
+		Mode: packages.NeedName | packages.NeedFiles | packages.NeedSyntax | packages.NeedModule | packages.NeedImports,
+		Dir:  *targetPath, // Run the load command from the target application's directory
+		Fset: fileSet,
+	}
+	pkgs, err := packages.Load(cfg, patterns...)
+	if err != nil {
+		log.Fatalf("Error loading packages: %v", err)
+	}
+	if packages.PrintErrors(pkgs) > 0 {
+		log.Fatalf("Errors during package loading")
 	}
 
+	// We need the absolute path of the root module to make file paths relative later.
+	var rootDir string
+	for _, pkg := range pkgs {
+		if pkg.Module != nil && pkg.Module.Main {
+			rootDir = pkg.Module.Dir
+			log.Printf("Analyzing module: %s rooted at %s", pkg.Module.Path, rootDir)
+			break
+		}
+	}
+	if rootDir == "" {
+		log.Fatal("Could not determine root module directory.")
+	}
+
+	// Pass 1: Find all function definitions in all loaded packages.
 	log.Println("Pass 1: Finding all function definitions...")
-	err = filepath.WalkDir(*targetPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
+	for _, pkg := range pkgs {
+		// We only want to find definitions in our main module or designated internal modules.
+		// Standard library and other third-party modules are ignored.
+		if pkg.Module != nil && (pkg.Module.Main || isInternalModule(pkg.PkgPath, pkg.Module.Path, internalPrefixes)) {
+			findDefinitions(pkg, rootDir)
 		}
-		if !d.IsDir() && strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go") {
-			findDefinitions(path, *targetPath, modulePath)
-		}
-		return nil
-	})
-	if err != nil {
-		log.Fatalf("Error during definition scan: %v", err)
 	}
 
+	// Pass 2: Find all call sites in all loaded packages.
 	log.Println("Pass 2: Finding all call sites...")
-	err = filepath.WalkDir(*targetPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
+	for _, pkg := range pkgs {
+		if pkg.Module != nil && (pkg.Module.Main || isInternalModule(pkg.PkgPath, pkg.Module.Path, internalPrefixes)) {
+			findCallSites(pkg, rootDir)
 		}
-		if !d.IsDir() && strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go") {
-			findCallSites(path, *targetPath, modulePath, internalPrefixes)
-		}
-		return nil
-	})
-	if err != nil {
-		log.Fatalf("Error during call site scan: %v", err)
 	}
+	// --- END REFACTORED LOGIC ---
 
 	var finalMappings []Mapping
 	for _, m := range mappings {
@@ -119,175 +141,143 @@ func main() {
 	}
 }
 
-func getModulePath(targetDir string) (string, error) {
-	goModPath := filepath.Join(targetDir, "go.mod")
-	content, err := os.ReadFile(goModPath)
-	if err != nil {
-		return "", err
-	}
-	for _, line := range strings.Split(string(content), "\n") {
-		if strings.HasPrefix(line, "module") {
-			parts := strings.Fields(line)
-			if len(parts) == 2 {
-				return parts[1], nil
+// No longer needed, as go/packages finds the module path for us.
+// func getModulePath(targetDir string) (string, error) { ... }
+
+// findDefinitions now takes a `*packages.Package` instead of a file path.
+func findDefinitions(pkg *packages.Package, rootDir string) {
+	for _, fileNode := range pkg.Syntax {
+		filePath := fileSet.File(fileNode.Pos()).Name()
+		relativePath, _ := filepath.Rel(rootDir, filePath)
+
+		ast.Inspect(fileNode, func(n ast.Node) bool {
+			fn, ok := n.(*ast.FuncDecl)
+			if !ok {
+				return true
 			}
-		}
-	}
-	return "", fmt.Errorf("could not find module declaration in go.mod")
-}
-
-func findDefinitions(filePath, rootPath, modulePath string) {
-	node, err := parser.ParseFile(fileSet, filePath, nil, 0)
-	if err != nil {
-		log.Printf("Warning: Could not parse %s: %v\n", filePath, err)
-		return
-	}
-	relativePath, _ := filepath.Rel(rootPath, filePath)
-	pkgDir := filepath.Dir(relativePath)
-	if pkgDir == "." {
-		pkgDir = ""
-	}
-	fullPkgPath := filepath.ToSlash(filepath.Join(modulePath, pkgDir))
-	ast.Inspect(node, func(n ast.Node) bool {
-		fn, ok := n.(*ast.FuncDecl)
-		if !ok {
+			funcName := fn.Name.Name
+			def := Definition{
+				Name:     funcName,
+				FilePath: filepath.ToSlash(relativePath),
+				Line:     fileSet.Position(fn.Pos()).Line,
+				Package:  pkg.PkgPath, // Use the package's canonical path
+			}
+			if fn.Recv != nil && len(fn.Recv.List) > 0 {
+				expr := fn.Recv.List[0].Type
+				buf := new(bytes.Buffer)
+				ast.Fprint(buf, fileSet, expr, nil)
+				def.ID = fmt.Sprintf("%s.%s", pkg.PkgPath, buf.String()+"."+funcName)
+			} else {
+				def.ID = fmt.Sprintf("%s.%s", pkg.PkgPath, funcName)
+			}
+			definitions[def.ID] = def
+			mappings[def.ID] = &Mapping{Definition: def, CallSites: []CallSite{}}
 			return true
-		}
-		funcName := fn.Name.Name
-		def := Definition{
-			Name:     funcName,
-			FilePath: filepath.ToSlash(relativePath),
-			Line:     fileSet.Position(fn.Pos()).Line,
-			Package:  fullPkgPath,
-		}
-		if fn.Recv != nil && len(fn.Recv.List) > 0 {
-			expr := fn.Recv.List[0].Type
-			buf := new(bytes.Buffer)
-			ast.Fprint(buf, fileSet, expr, nil)
-			def.ID = fmt.Sprintf("%s.%s", fullPkgPath, buf.String()+"."+funcName)
-		} else {
-			def.ID = fmt.Sprintf("%s.%s", fullPkgPath, funcName)
-		}
-		definitions[def.ID] = def
-		mappings[def.ID] = &Mapping{Definition: def, CallSites: []CallSite{}}
-		return true
-	})
+		})
+	}
 }
 
-func isInternalModule(modulePath string, currentModule string, internalPrefixes []string) bool {
-	// Always include the current module
-	if strings.HasPrefix(modulePath, currentModule) {
-		return true
-	}
-
-	// Check against internal prefixes
+// isInternalModule is simplified. We only need to check prefixes now.
+// The main module check is handled separately.
+func isInternalModule(pkgPath string, modulePath string, internalPrefixes []string) bool {
 	for _, prefix := range internalPrefixes {
-		if strings.HasPrefix(modulePath, prefix) {
+		if strings.HasPrefix(pkgPath, prefix) {
 			return true
 		}
 	}
 	return false
 }
 
-func findCallSites(filePath, rootPath, modulePath string, internalPrefixes []string) {
-	node, err := parser.ParseFile(fileSet, filePath, nil, 0)
-	if err != nil {
-		log.Printf("Warning: Could not parse %s: %v\n", filePath, err)
-		return
-	}
-	relativePath, _ := filepath.Rel(rootPath, filePath)
-	currentPkgDir := filepath.Dir(relativePath)
-	if currentPkgDir == "." {
-		currentPkgDir = ""
-	}
-	currentFullPkgPath := filepath.ToSlash(filepath.Join(modulePath, currentPkgDir))
-	importMap := make(map[string]string)
-	for _, imp := range node.Imports {
-		path := strings.Trim(imp.Path.Value, `"`) // Trimmed here
-		if imp.Name != nil {
-			importMap[imp.Name.Name] = path
-		} else {
-			parts := strings.Split(path, "/")
-			importMap[parts[len(parts)-1]] = path
-		}
-	}
-	var currentCallerID string
-	ast.Inspect(node, func(n ast.Node) bool {
-		if fn, ok := n.(*ast.FuncDecl); ok {
-			if fn.Recv != nil && len(fn.Recv.List) > 0 {
-				expr := fn.Recv.List[0].Type
-				buf := new(bytes.Buffer)
-				ast.Fprint(buf, fileSet, expr, nil)
-				currentCallerID = fmt.Sprintf("%s.%s", currentFullPkgPath, buf.String()+"."+fn.Name.Name)
+// findCallSites also takes a `*packages.Package`.
+func findCallSites(pkg *packages.Package, rootDir string) {
+	currentFullPkgPath := pkg.PkgPath
+
+	for _, fileNode := range pkg.Syntax {
+		filePath := fileSet.File(fileNode.Pos()).Name()
+		relativePath, _ := filepath.Rel(rootDir, filePath)
+
+		// Build import map for the current file
+		importMap := make(map[string]string)
+		for _, impSpec := range fileNode.Imports {
+			path := strings.Trim(impSpec.Path.Value, `"`)
+			if impSpec.Name != nil {
+				importMap[impSpec.Name.Name] = path // Explicit alias (e.g., `i "image"`)
 			} else {
-				currentCallerID = fmt.Sprintf("%s.%s", currentFullPkgPath, fn.Name.Name)
+				// Infer name from path (e.g., "net/http" -> "http")
+				importMap[filepath.Base(path)] = path
 			}
 		}
-		call, ok := n.(*ast.CallExpr)
-		if !ok {
-			return true
-		}
-		var calleeID string
-		switch fun := call.Fun.(type) {
-		case *ast.SelectorExpr:
-			pkgIdent, ok := fun.X.(*ast.Ident)
+
+		var currentCallerID string
+		ast.Inspect(fileNode, func(n ast.Node) bool {
+			// Find the surrounding function to identify the caller
+			if fn, ok := n.(*ast.FuncDecl); ok {
+				if fn.Recv != nil && len(fn.Recv.List) > 0 {
+					expr := fn.Recv.List[0].Type
+					buf := new(bytes.Buffer)
+					ast.Fprint(buf, fileSet, expr, nil)
+					currentCallerID = fmt.Sprintf("%s.%s", currentFullPkgPath, buf.String()+"."+fn.Name.Name)
+				} else {
+					currentCallerID = fmt.Sprintf("%s.%s", currentFullPkgPath, fn.Name.Name)
+				}
+			}
+
+			call, ok := n.(*ast.CallExpr)
 			if !ok {
 				return true
 			}
-			pkgAlias := pkgIdent.Name
-			funcName := fun.Sel.Name
-			if fullPkgPath, found := importMap[pkgAlias]; found {
-				// Only process calls to functions within our own module or internal modules
-				if isInternalModule(fullPkgPath, modulePath, internalPrefixes) {
-					calleeID = fmt.Sprintf("%s.%s", fullPkgPath, funcName)
-				} else {
-					// Skip external library calls - don't create mappings for them
+
+			var calleeID string
+			switch fun := call.Fun.(type) {
+			case *ast.SelectorExpr: // e.g., `somepkg.SomeFunc()`
+				pkgIdent, ok := fun.X.(*ast.Ident)
+				if !ok {
 					return true
 				}
+				pkgAlias := pkgIdent.Name
+				funcName := fun.Sel.Name
+				if fullPkgPath, found := importMap[pkgAlias]; found {
+					calleeID = fmt.Sprintf("%s.%s", fullPkgPath, funcName)
+				} else {
+					// This could be a method call on a struct from the current package
+					// For simplicity, we'll let this fall through. A more robust solution
+					// would use the `go/types` package, but that adds more complexity.
+				}
+			case *ast.Ident: // e.g., `SomeFunc()`
+				funcName := fun.Name
+				// Call to a function in the current package
+				calleeID = fmt.Sprintf("%s.%s", currentFullPkgPath, funcName)
 			}
-		case *ast.Ident:
-			funcName := fun.Name
-			// Only process calls within the current package
-			calleeID = fmt.Sprintf("%s.%s", currentFullPkgPath, funcName)
-		}
 
-		// Only add call sites for functions that we have definitions for (within our module)
-		if m, found := mappings[calleeID]; found {
-			if currentCallerID != "" {
-				m.CallSites = append(m.CallSites, CallSite{
-					FilePath: filepath.ToSlash(relativePath),
-					Line:     fileSet.Position(call.Pos()).Line,
-					CallerID: currentCallerID,
-				})
+			if m, found := mappings[calleeID]; found {
+				if currentCallerID != "" {
+					m.CallSites = append(m.CallSites, CallSite{
+						FilePath: filepath.ToSlash(relativePath),
+						Line:     fileSet.Position(call.Pos()).Line,
+						CallerID: currentCallerID,
+					})
+				}
 			}
-		}
-		if _, ok := n.(*ast.FuncDecl); ok {
-			defer func() { currentCallerID = "" }()
-		}
-		return true
-	})
+
+			if _, ok := n.(*ast.FuncDecl); ok {
+				// Reset caller ID after we leave the function scope
+				defer func() { currentCallerID = "" }()
+			}
+			return true
+		})
+	}
 }
 
-// serveVisualization starts a web server with a custom handler to force correct MIME types.
+// serveVisualization function remains the same.
 func serveVisualization(addr, jsonFile, vizDir string) {
 	log.Printf("Starting visualization server at http://localhost%s", addr)
-
-	// Create a new ServeMux (a request router).
 	mux := http.NewServeMux()
-
-	// API endpoint to serve the generated JSON data.
 	mux.HandleFunc("/api/codemap", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		http.ServeFile(w, r, jsonFile)
 	})
-
-	// Create a file server for our static assets.
 	fs := http.FileServer(http.Dir(vizDir))
-
-	// Wrap the file server with our custom MIME type handler.
-	// This now handles all other requests (like for CSS and JS).
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// **THE FIX IS HERE:** Manually set the Content-Type header based on the file extension.
 		if strings.HasSuffix(r.URL.Path, ".css") {
 			w.Header().Set("Content-Type", "text/css")
 		} else if strings.HasSuffix(r.URL.Path, ".js") {
@@ -297,11 +287,8 @@ func serveVisualization(addr, jsonFile, vizDir string) {
 		} else if strings.HasSuffix(r.URL.Path, ".json") {
 			w.Header().Set("Content-Type", "application/json")
 		}
-		// Let the standard file server do the rest of the work.
 		fs.ServeHTTP(w, r)
 	}))
-
-	// Start the server using our custom router.
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}

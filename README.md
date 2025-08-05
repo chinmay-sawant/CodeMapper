@@ -66,9 +66,12 @@ CodeMapper automates this process, saving you countless hours and reducing the r
 
 ```bash
 # 1. Build and run CodeMapper on your Go project
+go get golang.org/x/tools/go/packages
+
 go run main.go -path ./YourGoProject -serve :8080
 go run main.go -path ./EmployeeApp -serve :8080
 go run main.go -path ./EmployeeApp -serve :8080 -internal "bitbucket.org/yourorg,github.com/yourcompany"
+
 # 2. Open your browser and visit
 http://localhost:8080
 ```
