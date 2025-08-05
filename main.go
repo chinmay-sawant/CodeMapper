@@ -51,9 +51,22 @@ func main() {
 	serveAddr := flag.String("serve", "", "If set, serves visualization on this address (e.g., ':8080')")
 	visualizerDir := flag.String("viz-dir", "./visualizer", "Path to the visualizer's static files (html, css, js)")
 	internalModules := flag.String("internal", "", "Comma-separated list of module prefixes to treat as internal (e.g., 'bitbucket.org/yourorg,github.com/yourorg')")
+
+	// NEW FLAG to override GOPATH
+	gopath := flag.String("gopath", "", "(Optional) Override the GOPATH to locate the module cache")
+
 	flag.Parse()
 
-	// --- REFACTORED LOGIC ---
+	// SET THE GOPATH ENVIRONMENT VARIABLE IF THE FLAG IS USED
+	// This tells the Go toolchain (and go/packages) where to find the `pkg/mod` directory.
+	if *gopath != "" {
+		log.Printf("Overriding GOPATH to: %s", *gopath)
+		err := os.Setenv("GOPATH", *gopath)
+		if err != nil {
+			// This is unlikely to fail, but check for completeness.
+			log.Fatalf("Failed to set GOPATH environment variable: %v", err)
+		}
+	}
 
 	// 1. Define the patterns to load. We want all packages in the target path (`./...`)
 	//    and all packages matching our internal prefixes.
@@ -70,9 +83,9 @@ func main() {
 	}
 	log.Printf("Loading packages with patterns: %v", patterns)
 
-	// 2. Configure and run packages.Load. This is the core change.
+	// 2. Configure and run packages.Load. This is the core of the tool.
 	//    It will find and parse all Go files for the specified patterns,
-	//    including those in the module cache.
+	//    honoring the GOPATH environment variable we may have just set.
 	cfg := &packages.Config{
 		Mode: packages.NeedName | packages.NeedFiles | packages.NeedSyntax | packages.NeedModule | packages.NeedImports,
 		Dir:  *targetPath, // Run the load command from the target application's directory
@@ -83,28 +96,29 @@ func main() {
 		log.Fatalf("Error loading packages: %v", err)
 	}
 	if packages.PrintErrors(pkgs) > 0 {
-		log.Fatalf("Errors during package loading")
+		log.Fatalf("Errors during package loading. Check if dependencies are tidy.")
 	}
 
 	// We need the absolute path of the root module to make file paths relative later.
 	var rootDir string
+	var mainModulePath string
 	for _, pkg := range pkgs {
 		if pkg.Module != nil && pkg.Module.Main {
 			rootDir = pkg.Module.Dir
-			log.Printf("Analyzing module: %s rooted at %s", pkg.Module.Path, rootDir)
+			mainModulePath = pkg.Module.Path
+			log.Printf("Analyzing module: %s rooted at %s", mainModulePath, rootDir)
 			break
 		}
 	}
 	if rootDir == "" {
-		log.Fatal("Could not determine root module directory.")
+		log.Fatal("Could not determine root module directory. Make sure you are running this in a Go module.")
 	}
 
 	// Pass 1: Find all function definitions in all loaded packages.
 	log.Println("Pass 1: Finding all function definitions...")
 	for _, pkg := range pkgs {
 		// We only want to find definitions in our main module or designated internal modules.
-		// Standard library and other third-party modules are ignored.
-		if pkg.Module != nil && (pkg.Module.Main || isInternalModule(pkg.PkgPath, pkg.Module.Path, internalPrefixes)) {
+		if pkg.Module != nil && (pkg.Module.Path == mainModulePath || isInternalModule(pkg.PkgPath, internalPrefixes)) {
 			findDefinitions(pkg, rootDir)
 		}
 	}
@@ -112,11 +126,10 @@ func main() {
 	// Pass 2: Find all call sites in all loaded packages.
 	log.Println("Pass 2: Finding all call sites...")
 	for _, pkg := range pkgs {
-		if pkg.Module != nil && (pkg.Module.Main || isInternalModule(pkg.PkgPath, pkg.Module.Path, internalPrefixes)) {
+		if pkg.Module != nil && (pkg.Module.Path == mainModulePath || isInternalModule(pkg.PkgPath, internalPrefixes)) {
 			findCallSites(pkg, rootDir)
 		}
 	}
-	// --- END REFACTORED LOGIC ---
 
 	var finalMappings []Mapping
 	for _, m := range mappings {
@@ -141,14 +154,17 @@ func main() {
 	}
 }
 
-// No longer needed, as go/packages finds the module path for us.
-// func getModulePath(targetDir string) (string, error) { ... }
-
-// findDefinitions now takes a `*packages.Package` instead of a file path.
+// findDefinitions takes a `*packages.Package` and finds all function/method declarations.
 func findDefinitions(pkg *packages.Package, rootDir string) {
 	for _, fileNode := range pkg.Syntax {
 		filePath := fileSet.File(fileNode.Pos()).Name()
-		relativePath, _ := filepath.Rel(rootDir, filePath)
+		// Make file path relative to the main module's root for consistency
+		relativePath, err := filepath.Rel(rootDir, filePath)
+		if err != nil {
+			// If it's from the mod cache, the relative path might fail. Fallback to the full path.
+			// A better approach would be to make it relative to the module's own root.
+			relativePath = filePath
+		}
 
 		ast.Inspect(fileNode, func(n ast.Node) bool {
 			fn, ok := n.(*ast.FuncDecl)
@@ -160,14 +176,16 @@ func findDefinitions(pkg *packages.Package, rootDir string) {
 				Name:     funcName,
 				FilePath: filepath.ToSlash(relativePath),
 				Line:     fileSet.Position(fn.Pos()).Line,
-				Package:  pkg.PkgPath, // Use the package's canonical path
+				Package:  pkg.PkgPath, // Use the package's canonical import path
 			}
 			if fn.Recv != nil && len(fn.Recv.List) > 0 {
+				// This is a method. Construct the ID as "package.Receiver.MethodName"
 				expr := fn.Recv.List[0].Type
 				buf := new(bytes.Buffer)
 				ast.Fprint(buf, fileSet, expr, nil)
 				def.ID = fmt.Sprintf("%s.%s", pkg.PkgPath, buf.String()+"."+funcName)
 			} else {
+				// This is a regular function. Construct the ID as "package.FunctionName"
 				def.ID = fmt.Sprintf("%s.%s", pkg.PkgPath, funcName)
 			}
 			definitions[def.ID] = def
@@ -177,9 +195,8 @@ func findDefinitions(pkg *packages.Package, rootDir string) {
 	}
 }
 
-// isInternalModule is simplified. We only need to check prefixes now.
-// The main module check is handled separately.
-func isInternalModule(pkgPath string, modulePath string, internalPrefixes []string) bool {
+// isInternalModule checks if a given package path matches any of the user-provided internal prefixes.
+func isInternalModule(pkgPath string, internalPrefixes []string) bool {
 	for _, prefix := range internalPrefixes {
 		if strings.HasPrefix(pkgPath, prefix) {
 			return true
@@ -188,13 +205,16 @@ func isInternalModule(pkgPath string, modulePath string, internalPrefixes []stri
 	return false
 }
 
-// findCallSites also takes a `*packages.Package`.
+// findCallSites takes a `*packages.Package` and finds all calls to functions we've indexed.
 func findCallSites(pkg *packages.Package, rootDir string) {
 	currentFullPkgPath := pkg.PkgPath
 
 	for _, fileNode := range pkg.Syntax {
 		filePath := fileSet.File(fileNode.Pos()).Name()
-		relativePath, _ := filepath.Rel(rootDir, filePath)
+		relativePath, err := filepath.Rel(rootDir, filePath)
+		if err != nil {
+			relativePath = filePath
+		}
 
 		// Build import map for the current file
 		importMap := make(map[string]string)
@@ -232,16 +252,14 @@ func findCallSites(pkg *packages.Package, rootDir string) {
 			case *ast.SelectorExpr: // e.g., `somepkg.SomeFunc()`
 				pkgIdent, ok := fun.X.(*ast.Ident)
 				if !ok {
+					// Could be a more complex expression, e.g. a function call returning a struct.
+					// A more robust solution would use the `go/types` package for type information.
 					return true
 				}
 				pkgAlias := pkgIdent.Name
 				funcName := fun.Sel.Name
 				if fullPkgPath, found := importMap[pkgAlias]; found {
 					calleeID = fmt.Sprintf("%s.%s", fullPkgPath, funcName)
-				} else {
-					// This could be a method call on a struct from the current package
-					// For simplicity, we'll let this fall through. A more robust solution
-					// would use the `go/types` package, but that adds more complexity.
 				}
 			case *ast.Ident: // e.g., `SomeFunc()`
 				funcName := fun.Name
@@ -259,8 +277,8 @@ func findCallSites(pkg *packages.Package, rootDir string) {
 				}
 			}
 
+			// Reset caller ID after we leave the function scope using defer
 			if _, ok := n.(*ast.FuncDecl); ok {
-				// Reset caller ID after we leave the function scope
 				defer func() { currentCallerID = "" }()
 			}
 			return true
@@ -268,7 +286,7 @@ func findCallSites(pkg *packages.Package, rootDir string) {
 	}
 }
 
-// serveVisualization function remains the same.
+// serveVisualization starts a web server with a custom handler to force correct MIME types.
 func serveVisualization(addr, jsonFile, vizDir string) {
 	log.Printf("Starting visualization server at http://localhost%s", addr)
 	mux := http.NewServeMux()

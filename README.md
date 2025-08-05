@@ -71,6 +71,7 @@ go get golang.org/x/tools/go/packages
 go run main.go -path ./YourGoProject -serve :8080
 go run main.go -path ./EmployeeApp -serve :8080
 go run main.go -path ./EmployeeApp -serve :8080 -internal "bitbucket.org/yourorg,github.com/yourcompany"
+go run main.go -path ./EmployeeApp -gopath C:/Users/acer/go -internal "bitbucket.org/yourorg"
 
 # 2. Open your browser and visit
 http://localhost:8080
