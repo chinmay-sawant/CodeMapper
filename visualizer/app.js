@@ -87,7 +87,7 @@ function Flow() {
         if (currentlyClickedNode === node.id) {
             setCurrentlyClickedNode(null);
             setNodes(nds => nds.map(n => n.data.highlighted ? { ...n, data: { ...n.data, highlighted: false } } : n));
-            setEdges(eds => eds.map(e => e.className.includes('highlighted') ? { ...e, className: 'n8n-edge' } : e));
+            setEdges(eds => eds.map(e => (e.className || '').includes('highlighted') ? { ...e, className: 'n8n-edge' } : e));
             return;
         }
 
@@ -107,7 +107,7 @@ function Flow() {
         setEdges(currentEdges =>
             currentEdges.map(edge => {
                 const shouldBeHighlighted = pathEdges.has(edge.id);
-                const isHighlighted = edge.className.includes('highlighted');
+                const isHighlighted = (edge.className || '').includes('highlighted');
                 if (shouldBeHighlighted !== isHighlighted) {
                     return { ...edge, className: shouldBeHighlighted ? 'n8n-edge highlighted' : 'n8n-edge' };
                 }
@@ -122,7 +122,7 @@ function Flow() {
         if (currentlyClickedNode) {
             setCurrentlyClickedNode(null);
             setNodes(nds => nds.map(n => n.data.highlighted ? { ...n, data: { ...n.data, highlighted: false } } : n));
-            setEdges(eds => eds.map(e => e.className.includes('highlighted') ? { ...e, className: 'n8n-edge' } : e));
+            setEdges(eds => eds.map(e => (e.className || '').includes('highlighted') ? { ...e, className: 'n8n-edge' } : e));
         }
     }, [currentlyClickedNode]);
 
@@ -215,7 +215,8 @@ function Flow() {
             nodesDraggable: false,
             nodesConnectable: false,
             onlyRenderVisibleElements: true,
-            proOptions: { hideAttribution: true }
+            proOptions: { hideAttribution: true },
+            minZoom: 0.001
         },
         React.createElement(Controls),
         React.createElement(Background, { variant: 'dots', gap: 12, size: 1 })

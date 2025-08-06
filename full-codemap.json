@@ -1,81 +1,3088 @@
 [
   {
     "definition": {
-      "id": "employeeapp/internal/middleware.CORS",
-      "name": "CORS",
-      "package": "employeeapp/internal/middleware",
-      "filePath": "internal/middleware/cors.go",
-      "line": 5
+      "id": "github.com/revel/revel.nextKey",
+      "name": "nextKey",
+      "package": "github.com/revel/revel",
+      "filePath": "binder.go",
+      "line": 288
     },
     "callSites": [
       {
-        "filePath": "internal/routes/routes.go",
-        "line": 14,
-        "callerId": "employeeapp/internal/routes.SetupRouter"
+        "filePath": "binder.go",
+        "line": 322,
+        "callerId": "github.com/revel/revel.bindStruct"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 451,
+        "callerId": "github.com/revel/revel.bindMap"
       }
     ]
   },
   {
     "definition": {
-      "id": "employeeapp/internal/middleware.Logger",
-      "name": "Logger",
-      "package": "employeeapp/internal/middleware",
-      "filePath": "internal/middleware/logger.go",
-      "line": 10
+      "id": "github.com/revel/revel.TemplateOutputArgs",
+      "name": "TemplateOutputArgs",
+      "package": "github.com/revel/revel",
+      "filePath": "template.go",
+      "line": 56
     },
     "callSites": [
       {
-        "filePath": "internal/routes/routes.go",
-        "line": 15,
-        "callerId": "employeeapp/internal/routes.SetupRouter"
+        "filePath": "controller.go",
+        "line": 217,
+        "callerId": "github.com/revel/revel.*Controller.TemplateOutput"
       }
     ]
   },
   {
     "definition": {
-      "id": "employeeapp/internal/routes.SetupRouter",
-      "name": "SetupRouter",
-      "package": "employeeapp/internal/routes",
-      "filePath": "internal/routes/routes.go",
-      "line": 10
+      "id": "github.com/revel/revel/cache.NewInMemoryCache",
+      "name": "NewInMemoryCache",
+      "package": "github.com/revel/revel/cache",
+      "filePath": "cache/inmemory.go",
+      "line": 21
     },
     "callSites": [
       {
-        "filePath": "main.go",
-        "line": 12,
-        "callerId": "employeeapp.main"
+        "filePath": "cache/init.go",
+        "line": 58,
+        "callerId": "github.com/revel/revel/cache.init"
       }
     ]
   },
   {
     "definition": {
-      "id": "employeeapp/internal/config.Load",
-      "name": "Load",
-      "package": "employeeapp/internal/config",
-      "filePath": "internal/config/config.go",
-      "line": 9
+      "id": "github.com/revel/revel.newFieldPath",
+      "name": "newFieldPath",
+      "package": "github.com/revel/revel",
+      "filePath": "controller_type.go",
+      "line": 146
     },
     "callSites": [
       {
-        "filePath": "main.go",
-        "line": 10,
-        "callerId": "employeeapp.main"
+        "filePath": "controller_type.go",
+        "line": 116,
+        "callerId": "github.com/revel/revel.*ControllerTypeEvents.check"
       }
     ]
   },
   {
     "definition": {
-      "id": "employeeapp/internal/handlers.NewEmployeeHandler",
-      "name": "NewEmployeeHandler",
-      "package": "employeeapp/internal/handlers",
-      "filePath": "internal/handlers/employee.go",
-      "line": 12
+      "id": "github.com/revel/revel/logger.initAllLog",
+      "name": "initAllLog",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/init.go",
+      "line": 48
     },
     "callSites": [
       {
-        "filePath": "internal/routes/routes.go",
+        "filePath": "logger/init.go",
+        "line": 30,
+        "callerId": "github.com/revel/revel/logger.InitializeFromConfig"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.getModuleRoutes",
+      "name": "getModuleRoutes",
+      "package": "github.com/revel/revel",
+      "filePath": "router.go",
+      "line": 561
+    },
+    "callSites": [
+      {
+        "filePath": "router.go",
+        "line": 458,
+        "callerId": "github.com/revel/revel.parseRoutes"
+      },
+      {
+        "filePath": "router.go",
+        "line": 485,
+        "callerId": "github.com/revel/revel.parseRoutes"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/testing.createFormFile",
+      "name": "createFormFile",
+      "package": "github.com/revel/revel/testing",
+      "filePath": "testing/testsuite.go",
+      "line": 370
+    },
+    "callSites": [
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 225,
+        "callerId": "github.com/revel/revel/testing.*TestSuite.PostFileCustom"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.newMultipareForm",
+      "name": "newMultipareForm",
+      "package": "github.com/revel/revel",
+      "filePath": "http.go",
+      "line": 182
+    },
+    "callSites": [
+      {
+        "filePath": "http.go",
+        "line": 190,
+        "callerId": "github.com/revel/revel.*Request.ParseMultipartForm"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.setAppLog",
+      "name": "setAppLog",
+      "package": "github.com/revel/revel",
+      "filePath": "logger.go",
+      "line": 46
+    },
+    "callSites": [
+      {
+        "filePath": "logger.go",
+        "line": 41,
+        "callerId": "github.com/revel/revel.initLoggers"
+      },
+      {
+        "filePath": "revel.go",
+        "line": 260,
+        "callerId": "github.com/revel/revel.updateLog"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.isWithCIDR",
+      "name": "isWithCIDR",
+      "package": "github.com/revel/revel",
+      "filePath": "validators.go",
+      "line": 279
+    },
+    "callSites": [
+      {
+        "filePath": "validators.go",
+        "line": 304,
+        "callerId": "github.com/revel/revel.getIPType"
+      },
+      {
+        "filePath": "validators.go",
+        "line": 310,
+        "callerId": "github.com/revel/revel.getIPType"
+      },
+      {
+        "filePath": "validators.go",
+        "line": 317,
+        "callerId": "github.com/revel/revel.getIPType"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ValidMinFloat",
+      "name": "ValidMinFloat",
+      "package": "github.com/revel/revel",
+      "filePath": "validators.go",
+      "line": 58
+    },
+    "callSites": [
+      {
+        "filePath": "validators.go",
+        "line": 55,
+        "callerId": "github.com/revel/revel.ValidMin"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ValidDomain",
+      "name": "ValidDomain",
+      "package": "github.com/revel/revel",
+      "filePath": "validators.go",
+      "line": 387
+    },
+    "callSites": [
+      {
+        "filePath": "validators.go",
+        "line": 421,
+        "callerId": "github.com/revel/revel.ValidURL"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.formatJsonValue",
+      "name": "formatJsonValue",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/terminal_format.go",
+      "line": 237
+    },
+    "callSites": [
+      {
+        "filePath": "logger/terminal_format.go",
+        "line": 218,
+        "callerId": "github.com/revel/revel/logger.JsonFormatEx"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.parseRoutesFile",
+      "name": "parseRoutesFile",
+      "package": "github.com/revel/revel",
+      "filePath": "router.go",
+      "line": 431
+    },
+    "callSites": [
+      {
+        "filePath": "router.go",
+        "line": 250,
+        "callerId": "github.com/revel/revel.*Router.Refresh"
+      },
+      {
+        "filePath": "router.go",
+        "line": 571,
+        "callerId": "github.com/revel/revel.getModuleRoutes"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.addModule",
+      "name": "addModule",
+      "package": "github.com/revel/revel",
+      "filePath": "module.go",
+      "line": 171
+    },
+    "callSites": [
+      {
+        "filePath": "module.go",
+        "line": 156,
+        "callerId": "github.com/revel/revel.loadModules"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.RegisterSessionEngine",
+      "name": "RegisterSessionEngine",
+      "package": "github.com/revel/revel",
+      "filePath": "session_engine.go",
+      "line": 21
+    },
+    "callSites": [
+      {
+        "filePath": "session_adapter_cookie.go",
+        "line": 26,
+        "callerId": "github.com/revel/revel.init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.NewCompositeMultiHandler",
+      "name": "NewCompositeMultiHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/composite_multihandler.go",
+      "line": 19
+    },
+    "callSites": [
+      {
+        "filePath": "logger/init.go",
+        "line": 26,
+        "callerId": "github.com/revel/revel/logger.InitializeFromConfig"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.Verify",
+      "name": "Verify",
+      "package": "github.com/revel/revel",
+      "filePath": "libs.go",
+      "line": 33
+    },
+    "callSites": [
+      {
+        "filePath": "session_adapter_cookie.go",
+        "line": 81,
+        "callerId": "github.com/revel/revel.*SessionCookieEngine.DecodeCookie"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.findTarget",
+      "name": "findTarget",
+      "package": "github.com/revel/revel",
+      "filePath": "intercept.go",
+      "line": 213
+    },
+    "callSites": [
+      {
+        "filePath": "intercept.go",
+        "line": 194,
+        "callerId": "github.com/revel/revel.getInterceptors"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.handleInvocationPanic",
+      "name": "handleInvocationPanic",
+      "package": "github.com/revel/revel",
+      "filePath": "panic.go",
+      "line": 26
+    },
+    "callSites": [
+      {
+        "filePath": "panic.go",
         "line": 18,
-        "callerId": "employeeapp/internal/routes.SetupRouter"
+        "callerId": "github.com/revel/revel.PanicFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.JsonFormatEx",
+      "name": "JsonFormatEx",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/terminal_format.go",
+      "line": 203
+    },
+    "callSites": [
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 95,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetJson"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ModuleFromPath",
+      "name": "ModuleFromPath",
+      "package": "github.com/revel/revel",
+      "filePath": "module.go",
+      "line": 88
+    },
+    "callSites": [
+      {
+        "filePath": "controller.go",
+        "line": 538,
+        "callerId": "github.com/revel/revel.RegisterController"
+      },
+      {
+        "filePath": "module.go",
+        "line": 161,
+        "callerId": "github.com/revel/revel.loadModules"
+      },
+      {
+        "filePath": "results.go",
+        "line": 481,
+        "callerId": "github.com/revel/revel.getRedirectURL"
+      },
+      {
+        "filePath": "template.go",
+        "line": 283,
+        "callerId": "github.com/revel/revel.*templateRuntime.findAndAddTemplate"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.AddControllerType",
+      "name": "AddControllerType",
+      "package": "github.com/revel/revel",
+      "filePath": "controller_type.go",
+      "line": 45
+    },
+    "callSites": [
+      {
+        "filePath": "controller.go",
+        "line": 540,
+        "callerId": "github.com/revel/revel.RegisterController"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewRouter",
+      "name": "NewRouter",
+      "package": "github.com/revel/revel",
+      "filePath": "router.go",
+      "line": 603
+    },
+    "callSites": [
+      {
+        "filePath": "router.go",
+        "line": 857,
+        "callerId": "github.com/revel/revel.init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.initRequestLog",
+      "name": "initRequestLog",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/init.go",
+      "line": 121
+    },
+    "callSites": [
+      {
+        "filePath": "logger/init.go",
+        "line": 41,
+        "callerId": "github.com/revel/revel/logger.InitializeFromConfig"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/session.InitSession",
+      "name": "InitSession",
+      "package": "github.com/revel/revel/session",
+      "filePath": "session/init.go",
+      "line": 8
+    },
+    "callSites": [
+      {
+        "filePath": "server.go",
+        "line": 76,
+        "callerId": "github.com/revel/revel.Run"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.Atob",
+      "name": "Atob",
+      "package": "github.com/revel/revel",
+      "filePath": "libs.go",
+      "line": 78
+    },
+    "callSites": [
+      {
+        "filePath": "libs.go",
+        "line": 56,
+        "callerId": "github.com/revel/revel.ToBool"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.initFilterLog",
+      "name": "initFilterLog",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/init.go",
+      "line": 64
+    },
+    "callSites": [
+      {
+        "filePath": "logger/init.go",
+        "line": 37,
+        "callerId": "github.com/revel/revel/logger.InitializeFromConfig"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.restoreValidationErrors",
+      "name": "restoreValidationErrors",
+      "package": "github.com/revel/revel",
+      "filePath": "validation.go",
+      "line": 315
+    },
+    "callSites": [
+      {
+        "filePath": "validation.go",
+        "line": 263,
+        "callerId": "github.com/revel/revel.ValidationFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.RaiseEvent",
+      "name": "RaiseEvent",
+      "package": "github.com/revel/revel",
+      "filePath": "event.go",
+      "line": 45
+    },
+    "callSites": [
+      {
+        "filePath": "revel.go",
+        "line": 195,
+        "callerId": "github.com/revel/revel.Init"
+      },
+      {
+        "filePath": "revel.go",
+        "line": 197,
+        "callerId": "github.com/revel/revel.Init"
+      },
+      {
+        "filePath": "router.go",
+        "line": 249,
+        "callerId": "github.com/revel/revel.*Router.Refresh"
+      },
+      {
+        "filePath": "router.go",
+        "line": 251,
+        "callerId": "github.com/revel/revel.*Router.Refresh"
+      },
+      {
+        "filePath": "server.go",
+        "line": 69,
+        "callerId": "github.com/revel/revel.Run"
+      },
+      {
+        "filePath": "server.go",
+        "line": 80,
+        "callerId": "github.com/revel/revel.Run"
+      },
+      {
+        "filePath": "server.go",
+        "line": 82,
+        "callerId": "github.com/revel/revel.Run"
+      },
+      {
+        "filePath": "server.go",
+        "line": 90,
+        "callerId": "github.com/revel/revel.Run"
+      },
+      {
+        "filePath": "server.go",
+        "line": 154,
+        "callerId": "github.com/revel/revel.StopServer"
+      },
+      {
+        "filePath": "server_adapter_go.go",
+        "line": 224,
+        "callerId": "github.com/revel/revel.*GoHttpServer.Event"
+      },
+      {
+        "filePath": "template.go",
+        "line": 127,
+        "callerId": "github.com/revel/revel.*TemplateLoader.Refresh"
+      },
+      {
+        "filePath": "template.go",
+        "line": 132,
+        "callerId": "github.com/revel/revel.*TemplateLoader.Refresh"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.LazyHandler",
+      "name": "LazyHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/wrap_handlers.go",
+      "line": 55
+    },
+    "callSites": [
+      {
+        "filePath": "logger/handlers.go",
+        "line": 161,
+        "callerId": "github.com/revel/revel/logger.StreamHandler"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.parseLocale",
+      "name": "parseLocale",
+      "package": "github.com/revel/revel",
+      "filePath": "i18n.go",
+      "line": 108
+    },
+    "callSites": [
+      {
+        "filePath": "i18n.go",
+        "line": 60,
+        "callerId": "github.com/revel/revel.Message"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.CallerFileHandler",
+      "name": "CallerFileHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/handlers.go",
+      "line": 43
+    },
+    "callSites": [
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 95,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetJson"
+      },
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 137,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetTerminal"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.LevelHandler",
+      "name": "LevelHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/handlers.go",
+      "line": 15
+    },
+    "callSites": [
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 69,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetHandler"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.SetSecretKey",
+      "name": "SetSecretKey",
+      "package": "github.com/revel/revel",
+      "filePath": "revel.go",
+      "line": 266
+    },
+    "callSites": [
+      {
+        "filePath": "revel.go",
+        "line": 192,
+        "callerId": "github.com/revel/revel.Init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.OnAppStart",
+      "name": "OnAppStart",
+      "package": "github.com/revel/revel",
+      "filePath": "revel_hooks.go",
+      "line": 96
+    },
+    "callSites": [
+      {
+        "filePath": "binder.go",
+        "line": 545,
+        "callerId": "github.com/revel/revel.init"
+      },
+      {
+        "filePath": "cache/init.go",
+        "line": 17,
+        "callerId": "github.com/revel/revel/cache.init"
+      },
+      {
+        "filePath": "i18n.go",
+        "line": 184,
+        "callerId": "github.com/revel/revel.init"
+      },
+      {
+        "filePath": "logger.go",
+        "line": 34,
+        "callerId": "github.com/revel/revel.init"
+      },
+      {
+        "filePath": "router.go",
+        "line": 856,
+        "callerId": "github.com/revel/revel.init"
+      },
+      {
+        "filePath": "session_engine.go",
+        "line": 18,
+        "callerId": "github.com/revel/revel.init"
+      },
+      {
+        "filePath": "util.go",
+        "line": 264,
+        "callerId": "github.com/revel/revel.init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.findControllers",
+      "name": "findControllers",
+      "package": "github.com/revel/revel",
+      "filePath": "controller.go",
+      "line": 471
+    },
+    "callSites": [
+      {
+        "filePath": "controller_type.go",
+        "line": 50,
+        "callerId": "github.com/revel/revel.AddControllerType"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.treePath",
+      "name": "treePath",
+      "package": "github.com/revel/revel",
+      "filePath": "router.go",
+      "line": 156
+    },
+    "callSites": [
+      {
+        "filePath": "router.go",
+        "line": 107,
+        "callerId": "github.com/revel/revel.NewRoute"
+      },
+      {
+        "filePath": "router.go",
+        "line": 176,
+        "callerId": "github.com/revel/revel.*Router.Route"
+      },
+      {
+        "filePath": "router.go",
+        "line": 281,
+        "callerId": "github.com/revel/revel.*Router.updateTree"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.getMultipartFile",
+      "name": "getMultipartFile",
+      "package": "github.com/revel/revel",
+      "filePath": "binder.go",
+      "line": 360
+    },
+    "callSites": [
+      {
+        "filePath": "binder.go",
+        "line": 372,
+        "callerId": "github.com/revel/revel.bindFile"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 408,
+        "callerId": "github.com/revel/revel.bindByteArray"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 419,
+        "callerId": "github.com/revel/revel.bindReadSeeker"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.MatchFilterHandler",
+      "name": "MatchFilterHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/handlers.go",
+      "line": 72
+    },
+    "callSites": [
+      {
+        "filePath": "logger/handlers.go",
+        "line": 62,
+        "callerId": "github.com/revel/revel/logger.MatchHandler"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.getUnknownValueFormat",
+      "name": "getUnknownValueFormat",
+      "package": "github.com/revel/revel",
+      "filePath": "i18n.go",
+      "line": 118
+    },
+    "callSites": [
+      {
+        "filePath": "i18n.go",
+        "line": 61,
+        "callerId": "github.com/revel/revel.Message"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewTemplateLoader",
+      "name": "NewTemplateLoader",
+      "package": "github.com/revel/revel",
+      "filePath": "template.go",
+      "line": 74
+    },
+    "callSites": [
+      {
+        "filePath": "server.go",
+        "line": 43,
+        "callerId": "github.com/revel/revel.InitServer"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewBaseTemplate",
+      "name": "NewBaseTemplate",
+      "package": "github.com/revel/revel",
+      "filePath": "template.go",
+      "line": 479
+    },
+    "callSites": [
+      {
+        "filePath": "template.go",
+        "line": 288,
+        "callerId": "github.com/revel/revel.*templateRuntime.findAndAddTemplate"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.parseLocaleFromFileName",
+      "name": "parseLocaleFromFileName",
+      "package": "github.com/revel/revel",
+      "filePath": "i18n.go",
+      "line": 178
+    },
+    "callSites": [
+      {
+        "filePath": "i18n.go",
+        "line": 155,
+        "callerId": "github.com/revel/revel.loadMessageFile"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.getOverrideChain",
+      "name": "getOverrideChain",
+      "package": "github.com/revel/revel",
+      "filePath": "filterconfig.go",
+      "line": 215
+    },
+    "callSites": [
+      {
+        "filePath": "filterconfig.go",
+        "line": 166,
+        "callerId": "github.com/revel/revel.FilterConfigurator.getChain"
+      },
+      {
+        "filePath": "filterconfig.go",
+        "line": 207,
+        "callerId": "github.com/revel/revel.FilterConfiguringFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.FilterHandler",
+      "name": "FilterHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/handlers.go",
+      "line": 165
+    },
+    "callSites": [
+      {
+        "filePath": "logger/handlers.go",
+        "line": 30,
+        "callerId": "github.com/revel/revel/logger.MinLevelHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 38,
+        "callerId": "github.com/revel/revel/logger.NotLevelHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 73,
+        "callerId": "github.com/revel/revel/logger.MatchFilterHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 134,
+        "callerId": "github.com/revel/revel/logger.NotMatchHandler"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.TerminalFormatHandler",
+      "name": "TerminalFormatHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/terminal_format.go",
+      "line": 28
+    },
+    "callSites": [
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 120,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetTerminal"
+      },
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 127,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetTerminal"
+      },
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 133,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetTerminal"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.EngineHandles",
+      "name": "EngineHandles",
+      "package": "github.com/revel/revel",
+      "filePath": "template_engine.go",
+      "line": 94
+    },
+    "callSites": [
+      {
+        "filePath": "template_adapter_go.go",
+        "line": 77,
+        "callerId": "github.com/revel/revel.*GoEngine.Handles"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewBufferedServerHeader",
+      "name": "NewBufferedServerHeader",
+      "package": "github.com/revel/revel",
+      "filePath": "compress.go",
+      "line": 282
+    },
+    "callSites": [
+      {
+        "filePath": "compress.go",
+        "line": 74,
+        "callerId": "github.com/revel/revel.CompressFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.FilterEq",
+      "name": "FilterEq",
+      "package": "github.com/revel/revel",
+      "filePath": "filterconfig.go",
+      "line": 200
+    },
+    "callSites": [
+      {
+        "filePath": "filterconfig.go",
+        "line": 127,
+        "callerId": "github.com/revel/revel.FilterConfigurator.rmFilter"
+      },
+      {
+        "filePath": "filterconfig.go",
+        "line": 151,
+        "callerId": "github.com/revel/revel.FilterConfigurator.insertFilter"
+      },
+      {
+        "filePath": "filterconfig.go",
+        "line": 169,
+        "callerId": "github.com/revel/revel.FilterConfigurator.getChain"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ResolveImportPath",
+      "name": "ResolveImportPath",
+      "package": "github.com/revel/revel",
+      "filePath": "revel.go",
+      "line": 273
+    },
+    "callSites": [
+      {
+        "filePath": "module.go",
+        "line": 147,
+        "callerId": "github.com/revel/revel.loadModules"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.Bind",
+      "name": "Bind",
+      "package": "github.com/revel/revel",
+      "filePath": "binder.go",
+      "line": 475
+    },
+    "callSites": [
+      {
+        "filePath": "binder.go",
+        "line": 244,
+        "callerId": "github.com/revel/revel.bindSlice"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 336,
+        "callerId": "github.com/revel/revel.bindStruct"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 459,
+        "callerId": "github.com/revel/revel.bindMap"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 483,
+        "callerId": "github.com/revel/revel.BindValue"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 487,
+        "callerId": "github.com/revel/revel.BindFile"
+      },
+      {
+        "filePath": "invoker.go",
+        "line": 29,
+        "callerId": "github.com/revel/revel.ActionInvoker"
+      },
+      {
+        "filePath": "params.go",
+        "line": 100,
+        "callerId": "github.com/revel/revel.*Params.Bind"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.NewCallStack",
+      "name": "NewCallStack",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/utils.go",
+      "line": 108
+    },
+    "callSites": [
+      {
+        "filePath": "cache/memcached.go",
+        "line": 115,
+        "callerId": "github.com/revel/revel/cache.convertMemcacheError"
+      },
+      {
+        "filePath": "controller.go",
+        "line": 191,
+        "callerId": "github.com/revel/revel.*Controller.Render"
+      },
+      {
+        "filePath": "router.go",
+        "line": 555,
+        "callerId": "github.com/revel/revel.routeError"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.loadModules",
+      "name": "loadModules",
+      "package": "github.com/revel/revel",
+      "filePath": "module.go",
+      "line": 130
+    },
+    "callSites": [
+      {
+        "filePath": "revel.go",
+        "line": 196,
+        "callerId": "github.com/revel/revel.Init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.fsWalk",
+      "name": "fsWalk",
+      "package": "github.com/revel/revel",
+      "filePath": "util.go",
+      "line": 224
+    },
+    "callSites": [
+      {
+        "filePath": "util.go",
+        "line": 221,
+        "callerId": "github.com/revel/revel.Walk"
+      },
+      {
+        "filePath": "util.go",
+        "line": 253,
+        "callerId": "github.com/revel/revel.fsWalk"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewController",
+      "name": "NewController",
+      "package": "github.com/revel/revel",
+      "filePath": "controller.go",
+      "line": 60
+    },
+    "callSites": [
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 249,
+        "callerId": "github.com/revel/revel/testing.*TestRequest.Send"
+      },
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 282,
+        "callerId": "github.com/revel/revel/testing.*TestRequest.MakeRequest"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ParseTemplateError",
+      "name": "ParseTemplateError",
+      "package": "github.com/revel/revel",
+      "filePath": "template.go",
+      "line": 352
+    },
+    "callSites": [
+      {
+        "filePath": "results.go",
+        "line": 269,
+        "callerId": "github.com/revel/revel.*RenderTemplateResult.renderError"
+      },
+      {
+        "filePath": "template.go",
+        "line": 201,
+        "callerId": "github.com/revel/revel.*TemplateLoader.Refresh"
+      },
+      {
+        "filePath": "template_adapter_go.go",
+        "line": 93,
+        "callerId": "github.com/revel/revel.*GoEngine.ParseAndAdd"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.NewListLogHandler",
+      "name": "NewListLogHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/handlers.go",
+      "line": 180
+    },
+    "callSites": [
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 75,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetHandler"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.initLogLevels",
+      "name": "initLogLevels",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/init.go",
+      "line": 99
+    },
+    "callSites": [
+      {
+        "filePath": "logger/init.go",
+        "line": 32,
+        "callerId": "github.com/revel/revel/logger.InitializeFromConfig"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.namespaceReplace",
+      "name": "namespaceReplace",
+      "package": "github.com/revel/revel",
+      "filePath": "namespace.go",
+      "line": 15
+    },
+    "callSites": [
+      {
+        "filePath": "router.go",
+        "line": 93,
+        "callerId": "github.com/revel/revel.NewRoute"
+      },
+      {
+        "filePath": "router.go",
+        "line": 105,
+        "callerId": "github.com/revel/revel.NewRoute"
+      },
+      {
+        "filePath": "template.go",
+        "line": 284,
+        "callerId": "github.com/revel/revel.*templateRuntime.findAndAddTemplate"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.loadMessages",
+      "name": "loadMessages",
+      "package": "github.com/revel/revel",
+      "filePath": "i18n.go",
+      "line": 123
+    },
+    "callSites": [
+      {
+        "filePath": "i18n.go",
+        "line": 185,
+        "callerId": "github.com/revel/revel.init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.RegisterTemplateLoader",
+      "name": "RegisterTemplateLoader",
+      "package": "github.com/revel/revel",
+      "filePath": "template_engine.go",
+      "line": 41
+    },
+    "callSites": [
+      {
+        "filePath": "template_adapter_go.go",
+        "line": 16,
+        "callerId": "github.com/revel/revel.init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/utils.NewStackLock",
+      "name": "NewStackLock",
+      "package": "github.com/revel/revel/utils",
+      "filePath": "utils/simplestack.go",
+      "line": 28
+    },
+    "callSites": [
+      {
+        "filePath": "controller.go",
+        "line": 416,
+        "callerId": "github.com/revel/revel.*Controller.SetTypeAction"
+      },
+      {
+        "filePath": "server.go",
+        "line": 141,
+        "callerId": "github.com/revel/revel.initControllerStack"
+      },
+      {
+        "filePath": "server_adapter_go.go",
+        "line": 48,
+        "callerId": "github.com/revel/revel.*GoHttpServer.Init"
+      },
+      {
+        "filePath": "server_adapter_go.go",
+        "line": 53,
+        "callerId": "github.com/revel/revel.*GoHttpServer.Init"
+      },
+      {
+        "filePath": "server_adapter_go.go",
+        "line": 290,
+        "callerId": "github.com/revel/revel.NewGoContext"
+      },
+      {
+        "filePath": "server_adapter_go.go",
+        "line": 294,
+        "callerId": "github.com/revel/revel.NewGoContext"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewWatcher",
+      "name": "NewWatcher",
+      "package": "github.com/revel/revel",
+      "filePath": "watcher.go",
+      "line": 47
+    },
+    "callSites": [
+      {
+        "filePath": "server.go",
+        "line": 51,
+        "callerId": "github.com/revel/revel.InitServer"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ClientIP",
+      "name": "ClientIP",
+      "package": "github.com/revel/revel",
+      "filePath": "util.go",
+      "line": 194
+    },
+    "callSites": [
+      {
+        "filePath": "server-engine.go",
+        "line": 186,
+        "callerId": "github.com/revel/revel.handleInternal"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.initControllerStack",
+      "name": "initControllerStack",
+      "package": "github.com/revel/revel",
+      "filePath": "server.go",
+      "line": 137
+    },
+    "callSites": [
+      {
+        "filePath": "server.go",
+        "line": 39,
+        "callerId": "github.com/revel/revel.InitServer"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.DirExists",
+      "name": "DirExists",
+      "package": "github.com/revel/revel",
+      "filePath": "util.go",
+      "line": 132
+    },
+    "callSites": [
+      {
+        "filePath": "module.go",
+        "line": 181,
+        "callerId": "github.com/revel/revel.addModule"
+      },
+      {
+        "filePath": "module.go",
+        "line": 183,
+        "callerId": "github.com/revel/revel.addModule"
+      },
+      {
+        "filePath": "module.go",
+        "line": 197,
+        "callerId": "github.com/revel/revel.addModule"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.Equal",
+      "name": "Equal",
+      "package": "github.com/revel/revel",
+      "filePath": "util.go",
+      "line": 152
+    },
+    "callSites": [
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 326,
+        "callerId": "github.com/revel/revel/testing.*TestSuite.AssertEqual"
+      },
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 332,
+        "callerId": "github.com/revel/revel/testing.*TestSuite.AssertNotEqual"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ValidMaxFloat",
+      "name": "ValidMaxFloat",
+      "package": "github.com/revel/revel",
+      "filePath": "validators.go",
+      "line": 96
+    },
+    "callSites": [
+      {
+        "filePath": "validators.go",
+        "line": 93,
+        "callerId": "github.com/revel/revel.ValidMax"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.RegisterServerEngine",
+      "name": "RegisterServerEngine",
+      "package": "github.com/revel/revel",
+      "filePath": "server.go",
+      "line": 28
+    },
+    "callSites": [
+      {
+        "filePath": "server_adapter_go.go",
+        "line": 27,
+        "callerId": "github.com/revel/revel.init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.initHandlerFor",
+      "name": "initHandlerFor",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/init.go",
+      "line": 149
+    },
+    "callSites": [
+      {
+        "filePath": "logger/init.go",
+        "line": 56,
+        "callerId": "github.com/revel/revel/logger.initAllLog"
+      },
+      {
+        "filePath": "logger/init.go",
+        "line": 88,
+        "callerId": "github.com/revel/revel/logger.initFilterLog"
+      },
+      {
+        "filePath": "logger/init.go",
+        "line": 90,
+        "callerId": "github.com/revel/revel/logger.initFilterLog"
+      },
+      {
+        "filePath": "logger/init.go",
+        "line": 111,
+        "callerId": "github.com/revel/revel/logger.initLogLevels"
+      },
+      {
+        "filePath": "logger/init.go",
+        "line": 115,
+        "callerId": "github.com/revel/revel/logger.initLogLevels"
+      },
+      {
+        "filePath": "logger/init.go",
+        "line": 134,
+        "callerId": "github.com/revel/revel/logger.initRequestLog"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/cache.convertMemcacheError",
+      "name": "convertMemcacheError",
+      "package": "github.com/revel/revel/cache",
+      "filePath": "cache/memcached.go",
+      "line": 105
+    },
+    "callSites": [
+      {
+        "filePath": "cache/memcached.go",
+        "line": 40,
+        "callerId": "github.com/revel/revel/cache.MemcachedCache.Get"
+      },
+      {
+        "filePath": "cache/memcached.go",
+        "line": 48,
+        "callerId": "github.com/revel/revel/cache.MemcachedCache.GetMulti"
+      },
+      {
+        "filePath": "cache/memcached.go",
+        "line": 54,
+        "callerId": "github.com/revel/revel/cache.MemcachedCache.Delete"
+      },
+      {
+        "filePath": "cache/memcached.go",
+        "line": 59,
+        "callerId": "github.com/revel/revel/cache.MemcachedCache.Increment"
+      },
+      {
+        "filePath": "cache/memcached.go",
+        "line": 64,
+        "callerId": "github.com/revel/revel/cache.MemcachedCache.Decrement"
+      },
+      {
+        "filePath": "cache/memcached.go",
+        "line": 86,
+        "callerId": "github.com/revel/revel/cache.MemcachedCache.invoke"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.matchMapHandler",
+      "name": "matchMapHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/handlers.go",
+      "line": 109
+    },
+    "callSites": [
+      {
+        "filePath": "logger/handlers.go",
+        "line": 100,
+        "callerId": "github.com/revel/revel/logger.MatchMapHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 105,
+        "callerId": "github.com/revel/revel/logger.NotMatchMapHandler"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.formatLogfmtValue",
+      "name": "formatLogfmtValue",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/terminal_format.go",
+      "line": 96
+    },
+    "callSites": [
+      {
+        "filePath": "logger/terminal_format.go",
+        "line": 77,
+        "callerId": "github.com/revel/revel/logger.TerminalFormatHandler"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ReadLines",
+      "name": "ReadLines",
+      "package": "github.com/revel/revel",
+      "filePath": "util.go",
+      "line": 60
+    },
+    "callSites": [
+      {
+        "filePath": "errors.go",
+        "line": 57,
+        "callerId": "github.com/revel/revel.NewErrorFromPanic"
+      },
+      {
+        "filePath": "util.go",
+        "line": 52,
+        "callerId": "github.com/revel/revel.MustReadLines"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/cache.generalizeStringSlice",
+      "name": "generalizeStringSlice",
+      "package": "github.com/revel/revel/cache",
+      "filePath": "cache/redis.go",
+      "line": 123
+    },
+    "callSites": [
+      {
+        "filePath": "cache/redis.go",
+        "line": 137,
+        "callerId": "github.com/revel/revel/cache.RedisCache.GetMulti"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewErrorFromPanic",
+      "name": "NewErrorFromPanic",
+      "package": "github.com/revel/revel",
+      "filePath": "errors.go",
+      "line": 36
+    },
+    "callSites": [
+      {
+        "filePath": "panic.go",
+        "line": 27,
+        "callerId": "github.com/revel/revel.handleInvocationPanic"
+      },
+      {
+        "filePath": "template.go",
+        "line": 235,
+        "callerId": "github.com/revel/revel.*TemplateLoader.Refresh"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.hasAcceptLanguageHeader",
+      "name": "hasAcceptLanguageHeader",
+      "package": "github.com/revel/revel",
+      "filePath": "i18n.go",
+      "line": 225
+    },
+    "callSites": [
+      {
+        "filePath": "i18n.go",
+        "line": 204,
+        "callerId": "github.com/revel/revel.I18nFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.SetDefaultLog",
+      "name": "SetDefaultLog",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/revel_logger.go",
+      "line": 18
+    },
+    "callSites": [
+      {
+        "filePath": "logger.go",
+        "line": 58,
+        "callerId": "github.com/revel/revel.setAppLog"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewRoute",
+      "name": "NewRoute",
+      "package": "github.com/revel/revel",
+      "filePath": "router.go",
+      "line": 91
+    },
+    "callSites": [
+      {
+        "filePath": "router.go",
+        "line": 493,
+        "callerId": "github.com/revel/revel.parseRoutes"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.findRelevantStackFrame",
+      "name": "findRelevantStackFrame",
+      "package": "github.com/revel/revel",
+      "filePath": "errors.go",
+      "line": 127
+    },
+    "callSites": [
+      {
+        "filePath": "errors.go",
+        "line": 40,
+        "callerId": "github.com/revel/revel.NewErrorFromPanic"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.splitActionPath",
+      "name": "splitActionPath",
+      "package": "github.com/revel/revel",
+      "filePath": "router.go",
+      "line": 293
+    },
+    "callSites": [
+      {
+        "filePath": "results.go",
+        "line": 484,
+        "callerId": "github.com/revel/revel.getRedirectURL"
+      },
+      {
+        "filePath": "router.go",
+        "line": 121,
+        "callerId": "github.com/revel/revel.NewRoute"
+      },
+      {
+        "filePath": "router.go",
+        "line": 635,
+        "callerId": "github.com/revel/revel.*Router.ReverseError"
+      },
+      {
+        "filePath": "template_functions.go",
+        "line": 225,
+        "callerId": "github.com/revel/revel.ReverseURL"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.restoreFlash",
+      "name": "restoreFlash",
+      "package": "github.com/revel/revel",
+      "filePath": "flash.go",
+      "line": 68
+    },
+    "callSites": [
+      {
+        "filePath": "flash.go",
+        "line": 47,
+        "callerId": "github.com/revel/revel.FlashFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.FuncHandler",
+      "name": "FuncHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/wrap_handlers.go",
+      "line": 13
+    },
+    "callSites": [
+      {
+        "filePath": "logger/handlers.go",
+        "line": 44,
+        "callerId": "github.com/revel/revel/logger.CallerFileHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 53,
+        "callerId": "github.com/revel/revel/logger.CallerFuncHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 80,
+        "callerId": "github.com/revel/revel/logger.MatchAbHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 93,
+        "callerId": "github.com/revel/revel/logger.NilHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 110,
+        "callerId": "github.com/revel/revel/logger.matchMapHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 140,
+        "callerId": "github.com/revel/revel/logger.MultiHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 157,
+        "callerId": "github.com/revel/revel/logger.StreamHandler"
+      },
+      {
+        "filePath": "logger/handlers.go",
+        "line": 166,
+        "callerId": "github.com/revel/revel/logger.FilterHandler"
+      },
+      {
+        "filePath": "logger/wrap_handlers.go",
+        "line": 44,
+        "callerId": "github.com/revel/revel/logger.SyncHandler"
+      },
+      {
+        "filePath": "logger/wrap_handlers.go",
+        "line": 56,
+        "callerId": "github.com/revel/revel/logger.LazyHandler"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.FindMethod",
+      "name": "FindMethod",
+      "package": "github.com/revel/revel",
+      "filePath": "util.go",
+      "line": 78
+    },
+    "callSites": [
+      {
+        "filePath": "filterconfig.go",
+        "line": 92,
+        "callerId": "github.com/revel/revel.FilterAction"
+      },
+      {
+        "filePath": "results.go",
+        "line": 472,
+        "callerId": "github.com/revel/revel.getRedirectURL"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.setCurrentLocaleControllerArguments",
+      "name": "setCurrentLocaleControllerArguments",
+      "package": "github.com/revel/revel",
+      "filePath": "i18n.go",
+      "line": 216
+    },
+    "callSites": [
+      {
+        "filePath": "i18n.go",
+        "line": 195,
+        "callerId": "github.com/revel/revel.I18nFilter"
+      },
+      {
+        "filePath": "i18n.go",
+        "line": 203,
+        "callerId": "github.com/revel/revel.I18nFilter"
+      },
+      {
+        "filePath": "i18n.go",
+        "line": 206,
+        "callerId": "github.com/revel/revel.I18nFilter"
+      },
+      {
+        "filePath": "i18n.go",
+        "line": 209,
+        "callerId": "github.com/revel/revel.I18nFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.StreamHandler",
+      "name": "StreamHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/handlers.go",
+      "line": 156
+    },
+    "callSites": [
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 95,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetJson"
+      },
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 118,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetTerminal"
+      },
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 125,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetTerminal"
+      },
+      {
+        "filePath": "logger/composite_multihandler.go",
+        "line": 131,
+        "callerId": "github.com/revel/revel/logger.*CompositeMultiHandler.SetTerminal"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.InitializeFromConfig",
+      "name": "InitializeFromConfig",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/init.go",
+      "line": 14
+    },
+    "callSites": [
+      {
+        "filePath": "logger.go",
+        "line": 38,
+        "callerId": "github.com/revel/revel.initLoggers"
+      },
+      {
+        "filePath": "revel.go",
+        "line": 257,
+        "callerId": "github.com/revel/revel.updateLog"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ControllerTypeByName",
+      "name": "ControllerTypeByName",
+      "package": "github.com/revel/revel",
+      "filePath": "controller.go",
+      "line": 433
+    },
+    "callSites": [
+      {
+        "filePath": "controller.go",
+        "line": 392,
+        "callerId": "github.com/revel/revel.*Controller.SetTypeAction"
+      },
+      {
+        "filePath": "router.go",
+        "line": 694,
+        "callerId": "github.com/revel/revel.*Router.ReverseError"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.FormatFunc",
+      "name": "FormatFunc",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/logger.go",
+      "line": 124
+    },
+    "callSites": [
+      {
+        "filePath": "logger/terminal_format.go",
+        "line": 33,
+        "callerId": "github.com/revel/revel/logger.TerminalFormatHandler"
+      },
+      {
+        "filePath": "logger/terminal_format.go",
+        "line": 211,
+        "callerId": "github.com/revel/revel/logger.JsonFormatEx"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.NewLogOptions",
+      "name": "NewLogOptions",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/logger.go",
+      "line": 165
+    },
+    "callSites": [
+      {
+        "filePath": "logger/init.go",
+        "line": 56,
+        "callerId": "github.com/revel/revel/logger.initAllLog"
+      },
+      {
+        "filePath": "logger/init.go",
+        "line": 88,
+        "callerId": "github.com/revel/revel/logger.initFilterLog"
+      },
+      {
+        "filePath": "logger/init.go",
+        "line": 90,
+        "callerId": "github.com/revel/revel/logger.initFilterLog"
+      },
+      {
+        "filePath": "logger/init.go",
+        "line": 111,
+        "callerId": "github.com/revel/revel/logger.initLogLevels"
+      },
+      {
+        "filePath": "logger/init.go",
+        "line": 115,
+        "callerId": "github.com/revel/revel/logger.initLogLevels"
+      },
+      {
+        "filePath": "logger/init.go",
+        "line": 134,
+        "callerId": "github.com/revel/revel/logger.initRequestLog"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ContentTypeByFilename",
+      "name": "ContentTypeByFilename",
+      "package": "github.com/revel/revel",
+      "filePath": "util.go",
+      "line": 112
+    },
+    "callSites": [
+      {
+        "filePath": "results.go",
+        "line": 43,
+        "callerId": "github.com/revel/revel.ErrorResult.Apply"
+      },
+      {
+        "filePath": "results.go",
+        "line": 407,
+        "callerId": "github.com/revel/revel.*BinaryResult.Apply"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.isPureTextStrict",
+      "name": "isPureTextStrict",
+      "package": "github.com/revel/revel",
+      "filePath": "validators.go",
+      "line": 458
+    },
+    "callSites": [
+      {
+        "filePath": "validators.go",
+        "line": 558,
+        "callerId": "github.com/revel/revel.PureText.IsSatisfied"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.detectCompressionType",
+      "name": "detectCompressionType",
+      "package": "github.com/revel/revel",
+      "filePath": "compress.go",
+      "line": 190
+    },
+    "callSites": [
+      {
+        "filePath": "compress.go",
+        "line": 63,
+        "callerId": "github.com/revel/revel.CompressFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.getInterceptors",
+      "name": "getInterceptors",
+      "package": "github.com/revel/revel",
+      "filePath": "intercept.go",
+      "line": 187
+    },
+    "callSites": [
+      {
+        "filePath": "intercept.go",
+        "line": 120,
+        "callerId": "github.com/revel/revel.invokeInterceptors"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.InitServerEngine",
+      "name": "InitServerEngine",
+      "package": "github.com/revel/revel",
+      "filePath": "server.go",
+      "line": 96
+    },
+    "callSites": [
+      {
+        "filePath": "server.go",
+        "line": 79,
+        "callerId": "github.com/revel/revel.Run"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/cache.Serialize",
+      "name": "Serialize",
+      "package": "github.com/revel/revel/cache",
+      "filePath": "cache/serialization.go",
+      "line": 18
+    },
+    "callSites": [
+      {
+        "filePath": "cache/memcached.go",
+        "line": 82,
+        "callerId": "github.com/revel/revel/cache.MemcachedCache.invoke"
+      },
+      {
+        "filePath": "cache/redis.go",
+        "line": 247,
+        "callerId": "github.com/revel/revel/cache.RedisCache.invoke"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ResolveAcceptLanguage",
+      "name": "ResolveAcceptLanguage",
+      "package": "github.com/revel/revel",
+      "filePath": "http.go",
+      "line": 463
+    },
+    "callSites": [
+      {
+        "filePath": "http.go",
+        "line": 94,
+        "callerId": "github.com/revel/revel.*Request.SetRequest"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ParseKeyValueCookie",
+      "name": "ParseKeyValueCookie",
+      "package": "github.com/revel/revel",
+      "filePath": "util.go",
+      "line": 91
+    },
+    "callSites": [
+      {
+        "filePath": "flash.go",
+        "line": 74,
+        "callerId": "github.com/revel/revel.restoreFlash"
+      },
+      {
+        "filePath": "session_adapter_cookie.go",
+        "line": 88,
+        "callerId": "github.com/revel/revel.*SessionCookieEngine.DecodeCookie"
+      },
+      {
+        "filePath": "validation.go",
+        "line": 322,
+        "callerId": "github.com/revel/revel.restoreValidationErrors"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.BindFile",
+      "name": "BindFile",
+      "package": "github.com/revel/revel",
+      "filePath": "binder.go",
+      "line": 486
+    },
+    "callSites": [
+      {
+        "filePath": "binder.go",
+        "line": 262,
+        "callerId": "github.com/revel/revel.bindSlice"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/testing.NewTestSuiteEngine",
+      "name": "NewTestSuiteEngine",
+      "package": "github.com/revel/revel/testing",
+      "filePath": "testing/testsuite.go",
+      "line": 52
+    },
+    "callSites": [
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 48,
+        "callerId": "github.com/revel/revel/testing.NewTestSuite"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.findSrcPaths",
+      "name": "findSrcPaths",
+      "package": "github.com/revel/revel",
+      "filePath": "revel.go",
+      "line": 297
+    },
+    "callSites": [
+      {
+        "filePath": "revel.go",
+        "line": 111,
+        "callerId": "github.com/revel/revel.Init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.parseRoutes",
+      "name": "parseRoutes",
+      "package": "github.com/revel/revel",
+      "filePath": "router.go",
+      "line": 443
+    },
+    "callSites": [
+      {
+        "filePath": "router.go",
+        "line": 439,
+        "callerId": "github.com/revel/revel.parseRoutesFile"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.BindValue",
+      "name": "BindValue",
+      "package": "github.com/revel/revel",
+      "filePath": "binder.go",
+      "line": 482
+    },
+    "callSites": [
+      {
+        "filePath": "binder.go",
+        "line": 255,
+        "callerId": "github.com/revel/revel.bindSlice"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 459,
+        "callerId": "github.com/revel/revel.bindMap"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewResponse",
+      "name": "NewResponse",
+      "package": "github.com/revel/revel",
+      "filePath": "http.go",
+      "line": 70
+    },
+    "callSites": [
+      {
+        "filePath": "controller.go",
+        "line": 56,
+        "callerId": "github.com/revel/revel.NewControllerEmpty"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.Walk",
+      "name": "Walk",
+      "package": "github.com/revel/revel",
+      "filePath": "util.go",
+      "line": 220
+    },
+    "callSites": [
+      {
+        "filePath": "i18n.go",
+        "line": 130,
+        "callerId": "github.com/revel/revel.loadMessages"
+      },
+      {
+        "filePath": "i18n.go",
+        "line": 136,
+        "callerId": "github.com/revel/revel.loadMessages"
+      },
+      {
+        "filePath": "template.go",
+        "line": 231,
+        "callerId": "github.com/revel/revel.*TemplateLoader.Refresh"
+      },
+      {
+        "filePath": "watcher.go",
+        "line": 125,
+        "callerId": "github.com/revel/revel.*Watcher.Listen"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ParseParams",
+      "name": "ParseParams",
+      "package": "github.com/revel/revel",
+      "filePath": "params.go",
+      "line": 43
+    },
+    "callSites": [
+      {
+        "filePath": "params.go",
+        "line": 167,
+        "callerId": "github.com/revel/revel.ParamsFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.getIPType",
+      "name": "getIPType",
+      "package": "github.com/revel/revel",
+      "filePath": "validators.go",
+      "line": 294
+    },
+    "callSites": [
+      {
+        "filePath": "validators.go",
+        "line": 330,
+        "callerId": "github.com/revel/revel.IPAddr.IsSatisfied"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewControllerTypeEvents",
+      "name": "NewControllerTypeEvents",
+      "package": "github.com/revel/revel",
+      "filePath": "controller_type.go",
+      "line": 92
+    },
+    "callSites": [
+      {
+        "filePath": "controller_type.go",
+        "line": 51,
+        "callerId": "github.com/revel/revel.AddControllerType"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.invokeInterceptors",
+      "name": "invokeInterceptors",
+      "package": "github.com/revel/revel",
+      "filePath": "intercept.go",
+      "line": 114
+    },
+    "callSites": [
+      {
+        "filePath": "intercept.go",
+        "line": 96,
+        "callerId": "github.com/revel/revel.InterceptorFilter"
+      },
+      {
+        "filePath": "intercept.go",
+        "line": 99,
+        "callerId": "github.com/revel/revel.InterceptorFilter"
+      },
+      {
+        "filePath": "intercept.go",
+        "line": 105,
+        "callerId": "github.com/revel/revel.InterceptorFilter"
+      },
+      {
+        "filePath": "intercept.go",
+        "line": 111,
+        "callerId": "github.com/revel/revel.InterceptorFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewGoContext",
+      "name": "NewGoContext",
+      "package": "github.com/revel/revel",
+      "filePath": "server_adapter_go.go",
+      "line": 286
+    },
+    "callSites": [
+      {
+        "filePath": "server_adapter_go.go",
+        "line": 51,
+        "callerId": "github.com/revel/revel.*GoHttpServer.Init"
+      },
+      {
+        "filePath": "server_adapter_go.go",
+        "line": 292,
+        "callerId": "github.com/revel/revel.NewGoContext"
+      },
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 246,
+        "callerId": "github.com/revel/revel/testing.*TestRequest.Send"
+      },
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 274,
+        "callerId": "github.com/revel/revel/testing.*TestRequest.MakeRequest"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.AddInitEventHandler",
+      "name": "AddInitEventHandler",
+      "package": "github.com/revel/revel",
+      "filePath": "event.go",
+      "line": 54
+    },
+    "callSites": [
+      {
+        "filePath": "module.go",
+        "line": 49,
+        "callerId": "github.com/revel/revel.init"
+      },
+      {
+        "filePath": "router.go",
+        "line": 78,
+        "callerId": "github.com/revel/revel.init"
+      },
+      {
+        "filePath": "server.go",
+        "line": 133,
+        "callerId": "github.com/revel/revel.InitServerEngine"
+      },
+      {
+        "filePath": "server_adapter_go.go",
+        "line": 25,
+        "callerId": "github.com/revel/revel.init"
+      },
+      {
+        "filePath": "template_adapter_go.go",
+        "line": 14,
+        "callerId": "github.com/revel/revel.init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.binderForType",
+      "name": "binderForType",
+      "package": "github.com/revel/revel",
+      "filePath": "binder.go",
+      "line": 500
+    },
+    "callSites": [
+      {
+        "filePath": "binder.go",
+        "line": 476,
+        "callerId": "github.com/revel/revel.Bind"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 491,
+        "callerId": "github.com/revel/revel.Unbind"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ResolveContentType",
+      "name": "ResolveContentType",
+      "package": "github.com/revel/revel",
+      "filePath": "http.go",
+      "line": 380
+    },
+    "callSites": [
+      {
+        "filePath": "http.go",
+        "line": 92,
+        "callerId": "github.com/revel/revel.*Request.SetRequest"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.updateLog",
+      "name": "updateLog",
+      "package": "github.com/revel/revel",
+      "filePath": "revel.go",
+      "line": 207
+    },
+    "callSites": [
+      {
+        "filePath": "revel.go",
+        "line": 106,
+        "callerId": "github.com/revel/revel.Init"
+      },
+      {
+        "filePath": "revel.go",
+        "line": 156,
+        "callerId": "github.com/revel/revel.Init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/cache.NewRedisCache",
+      "name": "NewRedisCache",
+      "package": "github.com/revel/revel/cache",
+      "filePath": "cache/redis.go",
+      "line": 22
+    },
+    "callSites": [
+      {
+        "filePath": "cache/init.go",
+        "line": 53,
+        "callerId": "github.com/revel/revel/cache.init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.InitServer",
+      "name": "InitServer",
+      "package": "github.com/revel/revel",
+      "filePath": "server.go",
+      "line": 37
+    },
+    "callSites": [
+      {
+        "filePath": "server.go",
+        "line": 81,
+        "callerId": "github.com/revel/revel.Run"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ContainsString",
+      "name": "ContainsString",
+      "package": "github.com/revel/revel",
+      "filePath": "util.go",
+      "line": 68
+    },
+    "callSites": [
+      {
+        "filePath": "revel.go",
+        "line": 311,
+        "callerId": "github.com/revel/revel.findSrcPaths"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/cache.NewMemcachedCache",
+      "name": "NewMemcachedCache",
+      "package": "github.com/revel/revel/cache",
+      "filePath": "cache/memcached.go",
+      "line": 21
+    },
+    "callSites": [
+      {
+        "filePath": "cache/init.go",
+        "line": 39,
+        "callerId": "github.com/revel/revel/cache.init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.hasLocaleCookie",
+      "name": "hasLocaleCookie",
+      "package": "github.com/revel/revel",
+      "filePath": "i18n.go",
+      "line": 234
+    },
+    "callSites": [
+      {
+        "filePath": "i18n.go",
+        "line": 201,
+        "callerId": "github.com/revel/revel.I18nFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ModuleByName",
+      "name": "ModuleByName",
+      "package": "github.com/revel/revel",
+      "filePath": "module.go",
+      "line": 112
+    },
+    "callSites": [
+      {
+        "filePath": "module.go",
+        "line": 172,
+        "callerId": "github.com/revel/revel.addModule"
+      },
+      {
+        "filePath": "router.go",
+        "line": 317,
+        "callerId": "github.com/revel/revel.splitActionPath"
+      },
+      {
+        "filePath": "router.go",
+        "line": 564,
+        "callerId": "github.com/revel/revel.getModuleRoutes"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.formatShared",
+      "name": "formatShared",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/terminal_format.go",
+      "line": 125
+    },
+    "callSites": [
+      {
+        "filePath": "logger/terminal_format.go",
+        "line": 107,
+        "callerId": "github.com/revel/revel/logger.formatLogfmtValue"
+      },
+      {
+        "filePath": "logger/terminal_format.go",
+        "line": 238,
+        "callerId": "github.com/revel/revel/logger.formatJsonValue"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.routeError",
+      "name": "routeError",
+      "package": "github.com/revel/revel",
+      "filePath": "router.go",
+      "line": 537
+    },
+    "callSites": [
+      {
+        "filePath": "router.go",
+        "line": 286,
+        "callerId": "github.com/revel/revel.*Router.updateTree"
+      },
+      {
+        "filePath": "router.go",
+        "line": 460,
+        "callerId": "github.com/revel/revel.parseRoutes"
+      },
+      {
+        "filePath": "router.go",
+        "line": 487,
+        "callerId": "github.com/revel/revel.parseRoutes"
+      },
+      {
+        "filePath": "router.go",
+        "line": 498,
+        "callerId": "github.com/revel/revel.parseRoutes"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.escapeString",
+      "name": "escapeString",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/terminal_format.go",
+      "line": 157
+    },
+    "callSites": [
+      {
+        "filePath": "logger/terminal_format.go",
+        "line": 118,
+        "callerId": "github.com/revel/revel/logger.formatLogfmtValue"
+      },
+      {
+        "filePath": "logger/terminal_format.go",
+        "line": 120,
+        "callerId": "github.com/revel/revel/logger.formatLogfmtValue"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.beforeAfterFilterInvoke",
+      "name": "beforeAfterFilterInvoke",
+      "package": "github.com/revel/revel",
+      "filePath": "before_after_filter.go",
+      "line": 33
+    },
+    "callSites": [
+      {
+        "filePath": "before_after_filter.go",
+        "line": 11,
+        "callerId": "github.com/revel/revel.BeforeAfterFilter"
+      },
+      {
+        "filePath": "before_after_filter.go",
+        "line": 17,
+        "callerId": "github.com/revel/revel.BeforeAfterFilter"
+      },
+      {
+        "filePath": "before_after_filter.go",
+        "line": 23,
+        "callerId": "github.com/revel/revel.BeforeAfterFilter"
+      },
+      {
+        "filePath": "before_after_filter.go",
+        "line": 28,
+        "callerId": "github.com/revel/revel.BeforeAfterFilter"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.SyncHandler",
+      "name": "SyncHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/wrap_handlers.go",
+      "line": 42
+    },
+    "callSites": [
+      {
+        "filePath": "logger/handlers.go",
+        "line": 161,
+        "callerId": "github.com/revel/revel/logger.StreamHandler"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewControllerEmpty",
+      "name": "NewControllerEmpty",
+      "package": "github.com/revel/revel",
+      "filePath": "controller.go",
+      "line": 55
+    },
+    "callSites": [
+      {
+        "filePath": "controller.go",
+        "line": 61,
+        "callerId": "github.com/revel/revel.NewController"
+      },
+      {
+        "filePath": "server-engine.go",
+        "line": 176,
+        "callerId": "github.com/revel/revel.handleInternal"
+      },
+      {
+        "filePath": "server.go",
+        "line": 144,
+        "callerId": "github.com/revel/revel.initControllerStack"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.MatchAbHandler",
+      "name": "MatchAbHandler",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/handlers.go",
+      "line": 79
+    },
+    "callSites": [
+      {
+        "filePath": "logger/init.go",
+        "line": 140,
+        "callerId": "github.com/revel/revel/logger.initRequestLog"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.HttpClientIP",
+      "name": "HttpClientIP",
+      "package": "github.com/revel/revel",
+      "filePath": "server_adapter_go.go",
+      "line": 171
+    },
+    "callSites": [
+      {
+        "filePath": "server_adapter_go.go",
+        "line": 113,
+        "callerId": "github.com/revel/revel.*GoHttpServer.handleAppMux"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.newFilterConfigurator",
+      "name": "newFilterConfigurator",
+      "package": "github.com/revel/revel",
+      "filePath": "filterconfig.go",
+      "line": 60
+    },
+    "callSites": [
+      {
+        "filePath": "filterconfig.go",
+        "line": 75,
+        "callerId": "github.com/revel/revel.FilterController"
+      },
+      {
+        "filePath": "filterconfig.go",
+        "line": 101,
+        "callerId": "github.com/revel/revel.FilterAction"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/testing.escapeQuotes",
+      "name": "escapeQuotes",
+      "package": "github.com/revel/revel/testing",
+      "filePath": "testing/testsuite.go",
+      "line": 408
+    },
+    "callSites": [
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 385,
+        "callerId": "github.com/revel/revel/testing.createFormFile"
+      },
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 386,
+        "callerId": "github.com/revel/revel/testing.createFormFile"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/cache.Deserialize",
+      "name": "Deserialize",
+      "package": "github.com/revel/revel/cache",
+      "filePath": "cache/serialization.go",
+      "line": 41
+    },
+    "callSites": [
+      {
+        "filePath": "cache/memcached.go",
+        "line": 42,
+        "callerId": "github.com/revel/revel/cache.MemcachedCache.Get"
+      },
+      {
+        "filePath": "cache/memcached.go",
+        "line": 102,
+        "callerId": "github.com/revel/revel/cache.ItemMapGetter.Get"
+      },
+      {
+        "filePath": "cache/redis.go",
+        "line": 120,
+        "callerId": "github.com/revel/revel/cache.RedisCache.Get"
+      },
+      {
+        "filePath": "cache/redis.go",
+        "line": 271,
+        "callerId": "github.com/revel/revel/cache.RedisItemMapGetter.Get"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ValidRangeFloat",
+      "name": "ValidRangeFloat",
+      "package": "github.com/revel/revel",
+      "filePath": "validators.go",
+      "line": 136
+    },
+    "callSites": [
+      {
+        "filePath": "validators.go",
+        "line": 133,
+        "callerId": "github.com/revel/revel.ValidRange"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.isPureTextNormal",
+      "name": "isPureTextNormal",
+      "package": "github.com/revel/revel",
+      "filePath": "validators.go",
+      "line": 529
+    },
+    "callSites": [
+      {
+        "filePath": "validators.go",
+        "line": 560,
+        "callerId": "github.com/revel/revel.PureText.IsSatisfied"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.Sign",
+      "name": "Sign",
+      "package": "github.com/revel/revel",
+      "filePath": "libs.go",
+      "line": 19
+    },
+    "callSites": [
+      {
+        "filePath": "libs.go",
+        "line": 34,
+        "callerId": "github.com/revel/revel.Verify"
+      },
+      {
+        "filePath": "session_adapter_cookie.go",
+        "line": 133,
+        "callerId": "github.com/revel/revel.*SessionCookieEngine.GetCookie"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/cache.exists",
+      "name": "exists",
+      "package": "github.com/revel/revel/cache",
+      "filePath": "cache/redis.go",
+      "line": 157
+    },
+    "callSites": [
+      {
+        "filePath": "cache/redis.go",
+        "line": 76,
+        "callerId": "github.com/revel/revel/cache.RedisCache.Add"
+      },
+      {
+        "filePath": "cache/redis.go",
+        "line": 91,
+        "callerId": "github.com/revel/revel/cache.RedisCache.Replace"
+      },
+      {
+        "filePath": "cache/redis.go",
+        "line": 207,
+        "callerId": "github.com/revel/revel/cache.RedisCache.Decrement"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewSessionCookieEngine",
+      "name": "NewSessionCookieEngine",
+      "package": "github.com/revel/revel",
+      "filePath": "session_adapter_cookie.go",
+      "line": 30
+    },
+    "callSites": [
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 48,
+        "callerId": "github.com/revel/revel/testing.NewTestSuite"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/session.NewSession",
+      "name": "NewSession",
+      "package": "github.com/revel/revel/session",
+      "filePath": "session/session.go",
+      "line": 41
+    },
+    "callSites": [
+      {
+        "filePath": "controller.go",
+        "line": 110,
+        "callerId": "github.com/revel/revel.*Controller.Destroy"
+      },
+      {
+        "filePath": "testing/testsuite.go",
+        "line": 56,
+        "callerId": "github.com/revel/revel/testing.NewTestSuiteEngine"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.parseRouteLine",
+      "name": "parseRouteLine",
+      "package": "github.com/revel/revel",
+      "filePath": "router.go",
+      "line": 593
+    },
+    "callSites": [
+      {
+        "filePath": "router.go",
+        "line": 467,
+        "callerId": "github.com/revel/revel.parseRoutes"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.Unbind",
+      "name": "Unbind",
+      "package": "github.com/revel/revel",
+      "filePath": "binder.go",
+      "line": 490
+    },
+    "callSites": [
+      {
+        "filePath": "binder.go",
+        "line": 299,
+        "callerId": "github.com/revel/revel.unbindSlice"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 354,
+        "callerId": "github.com/revel/revel.unbindStruct"
+      },
+      {
+        "filePath": "binder.go",
+        "line": 467,
+        "callerId": "github.com/revel/revel.unbindMap"
+      },
+      {
+        "filePath": "results.go",
+        "line": 497,
+        "callerId": "github.com/revel/revel.getRedirectURL"
+      },
+      {
+        "filePath": "router.go",
+        "line": 132,
+        "callerId": "github.com/revel/revel.NewRoute"
+      },
+      {
+        "filePath": "template_functions.go",
+        "line": 253,
+        "callerId": "github.com/revel/revel.ReverseURL"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.initLoggers",
+      "name": "initLoggers",
+      "package": "github.com/revel/revel",
+      "filePath": "logger.go",
+      "line": 37
+    },
+    "callSites": [
+      {
+        "filePath": "logger.go",
+        "line": 33,
+        "callerId": "github.com/revel/revel.init"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.parseMessagesFile",
+      "name": "parseMessagesFile",
+      "package": "github.com/revel/revel",
+      "filePath": "i18n.go",
+      "line": 173
+    },
+    "callSites": [
+      {
+        "filePath": "i18n.go",
+        "line": 151,
+        "callerId": "github.com/revel/revel.loadMessageFile"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel/logger.evaluateLazy",
+      "name": "evaluateLazy",
+      "package": "github.com/revel/revel/logger",
+      "filePath": "logger/wrap_handlers.go",
+      "line": 70
+    },
+    "callSites": [
+      {
+        "filePath": "logger/wrap_handlers.go",
+        "line": 59,
+        "callerId": "github.com/revel/revel/logger.LazyHandler"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.getRedirectURL",
+      "name": "getRedirectURL",
+      "package": "github.com/revel/revel",
+      "filePath": "results.go",
+      "line": 460
+    },
+    "callSites": [
+      {
+        "filePath": "results.go",
+        "line": 450,
+        "callerId": "github.com/revel/revel.*RedirectToActionResult.Apply"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.ResolveFormat",
+      "name": "ResolveFormat",
+      "package": "github.com/revel/revel",
+      "filePath": "http.go",
+      "line": 392
+    },
+    "callSites": [
+      {
+        "filePath": "http.go",
+        "line": 93,
+        "callerId": "github.com/revel/revel.*Request.SetRequest"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.NewRequest",
+      "name": "NewRequest",
+      "package": "github.com/revel/revel",
+      "filePath": "http.go",
+      "line": 77
+    },
+    "callSites": [
+      {
+        "filePath": "controller.go",
+        "line": 56,
+        "callerId": "github.com/revel/revel.NewControllerEmpty"
+      }
+    ]
+  },
+  {
+    "definition": {
+      "id": "github.com/revel/revel.validateRoute",
+      "name": "validateRoute",
+      "package": "github.com/revel/revel",
+      "filePath": "router.go",
+      "line": 507
+    },
+    "callSites": [
+      {
+        "filePath": "router.go",
+        "line": 497,
+        "callerId": "github.com/revel/revel.parseRoutes"
       }
     ]
   }
