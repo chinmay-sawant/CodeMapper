@@ -119,3 +119,61 @@ body {
 .react-flow__minimap-mask {
   fill: rgba(42, 41, 59, 0.7);
 }
+
+/* Path view controls */
+.path-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  gap: 10px;
+}
+
+.path-button {
+  background-color: #2a293b;
+  border: 1px solid #4a495b;
+  color: #f0f0f0;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.path-button:hover {
+  background-color: #3a394b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.path-button.primary {
+  background-color: #4a9eff;
+  border-color: #4a9eff;
+}
+
+.path-button.primary:hover {
+  background-color: #357abd;
+  border-color: #357abd;
+}
+
+.path-button.secondary {
+  background-color: #ff6b6b;
+  border-color: #ff6b6b;
+}
+
+.path-button.secondary:hover {
+  background-color: #e55555;
+  border-color: #e55555;
+}
+
+/* Loading indicator styling */
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  font-size: 18px;
+  color: #b0b0b0;
+}
