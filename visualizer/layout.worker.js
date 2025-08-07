@@ -1,175 +1,169 @@
-// Web Worker for layout processing with performance optimizations
+// =======================================================
+// PASTE THIS ENTIRE CODE INTO a NEW FILE named layout.worker.js
+// AND PLACE IT IN YOUR 'public' FOLDER
+// =======================================================
 
-self.onmessage = function(event) {
-    const mappings = event.data;
-    
-    try {
-        // Performance optimization: limit processing for very large datasets
-        const maxNodes = 5000;
-        const limitedMappings = mappings.length > maxNodes ? 
-            mappings.slice(0, maxNodes) : mappings;
-            
-        if (mappings.length > maxNodes) {
-            console.warn(`Dataset limited to ${maxNodes} nodes for performance`);
-        }
-        
-        const nodes = [];
-        const edges = [];
-        const nodeMap = new Map();
-        let nodeIdCounter = 0;
+/**
+ * A highly optimized function to calculate graph layout using topological sorting.
+ * Complexity: O(N + E) where N is nodes and E is edges.
+ * This is significantly faster than the previous O(N * E) approach.
+ *
+ * @param {Array} mappings The raw data from the API.
+ * @returns {{initialNodes: Array, initialEdges: Array}}
+ */
+const getLayoutedElements = (mappings) => {
+    if (!mappings || mappings.length === 0) {
+        return { initialNodes: [], initialEdges: [] };
+    }
 
-        // Create nodes with increased spacing
-        limitedMappings.forEach((mapping) => {
-            const nodeId = `node-${nodeIdCounter++}`;
-            const node = {
-                id: nodeId,
-                type: 'customNode',
-                position: { x: 0, y: 0 }, // Will be calculated later
+    const nodes = new Map();
+    const edges = new Set();
+    const adjacencyList = new Map(); // For topological sort: sourceId -> [targetId, targetId, ...]
+    const inDegree = new Map(); // For topological sort: nodeId -> count of incoming edges
+
+    // --- Step 1: Build Graph Data Structures in a Single Pass ---
+    // This is more efficient than iterating over mappings multiple times.
+    for (const m of mappings) {
+        if (!m.definition) continue;
+        const def = m.definition;
+
+        // Ensure definition node exists
+        if (!nodes.has(def.id)) {
+            nodes.set(def.id, {
+                id: def.id,
                 data: {
-                    name: mapping.name,
-                    package: mapping.package || 'Unknown',
-                    filePath: mapping.filePath || '',
-                    highlighted: false
-                }
-            };
-            nodes.push(node);
-            nodeMap.set(`${mapping.package}:${mapping.name}`, nodeId);
-        });
+                    package: def.package,
+                    name: def.name,
+                    filePath: `${def.filePath}:${def.line}`,
+                    highlighted: false,
+                },
+                position: { x: 0, y: 0 },
+                type: 'customNode',
+            });
+        }
 
-        // Create edges
-        let edgeIdCounter = 0;
-        limitedMappings.forEach((mapping) => {
-            const sourceKey = `${mapping.package}:${mapping.name}`;
-            const sourceNodeId = nodeMap.get(sourceKey);
-            
-            if (mapping.calls && Array.isArray(mapping.calls)) {
-                mapping.calls.forEach((call) => {
-                    const targetKey = `${call.package}:${call.name}`;
-                    const targetNodeId = nodeMap.get(targetKey);
-                    
-                    if (targetNodeId && sourceNodeId !== targetNodeId) {
-                        edges.push({
-                            id: `edge-${edgeIdCounter++}`,
-                            source: sourceNodeId,
-                            target: targetNodeId,
-                            type: 'smoothstep', // Curved edges
-                            className: 'n8n-edge'
-                        });
-                    }
+        // Initialize in-degree and adjacency list for the definition node
+        if (!inDegree.has(def.id)) inDegree.set(def.id, 0);
+        
+        for (const cs of m.callSites) {
+             // Ensure caller node exists
+            if (!nodes.has(cs.callerId)) {
+                const simpleName = cs.callerId.split('.').pop();
+                const simplePackage = cs.callerId.substring(0, cs.callerId.lastIndexOf('.'));
+                nodes.set(cs.callerId, {
+                    id: cs.callerId,
+                    data: {
+                        package: simplePackage,
+                        name: simpleName,
+                        filePath: cs.filePath,
+                        highlighted: false,
+                    },
+                    position: { x: 0, y: 0 },
+                    type: 'customNode',
                 });
             }
-        });
 
-        // Optimized layout algorithm with increased spacing
-        const layoutResult = calculateLayout(nodes, edges);
-        
-        self.postMessage({
-            initialNodes: layoutResult.nodes,
-            initialEdges: edges
-        });
-        
-    } catch (error) {
-        console.error('Worker error:', error);
-        self.postMessage({
-            initialNodes: [{
-                id: 'error-node',
-                type: 'customNode',
-                position: { x: 0, y: 0 },
-                data: {
-                    name: 'Layout Error',
-                    package: 'Error',
-                    filePath: error.message,
-                    highlighted: false
+            // Create the edge
+            const edgeId = `${cs.callerId}->${def.id}`;
+            if (!edges.has(edgeId)) {
+                edges.add(edgeId);
+
+                // Update adjacency list for the source (caller)
+                if (!adjacencyList.has(cs.callerId)) {
+                    adjacencyList.set(cs.callerId, []);
                 }
-            }],
-            initialEdges: []
-        });
+                adjacencyList.get(cs.callerId).push(def.id);
+
+                // Update in-degree for the target (definition)
+                inDegree.set(def.id, (inDegree.get(def.id) || 0) + 1);
+            }
+        }
     }
+
+    // --- Step 2: Topological Sort (Kahn's Algorithm) for Layering ---
+    const nodeDepths = new Map();
+    const columns = [];
+    let queue = [];
+
+    // Initialize queue with all nodes that have an in-degree of 0 (root nodes)
+    for (const nodeId of nodes.keys()) {
+        if (!inDegree.has(nodeId) || inDegree.get(nodeId) === 0) {
+            queue.push(nodeId);
+        }
+    }
+
+    let depth = 0;
+    while (queue.length > 0) {
+        const levelSize = queue.length;
+        columns[depth] = [];
+        const nextQueue = [];
+
+        for (let i = 0; i < levelSize; i++) {
+            const u = queue[i];
+            nodeDepths.set(u, depth);
+            columns[depth].push(nodes.get(u));
+            
+            const neighbors = adjacencyList.get(u) || [];
+            for (const v of neighbors) {
+                const currentInDegree = (inDegree.get(v) || 0) - 1;
+                inDegree.set(v, currentInDegree);
+                if (currentInDegree === 0) {
+                    nextQueue.push(v);
+                }
+            }
+        }
+        queue = nextQueue;
+        depth++;
+    }
+
+    // --- Step 3: Handle Cycles ---
+    // Any node not in nodeDepths is part of a cycle. Group them together.
+    const cyclicNodes = [];
+    for (const node of nodes.values()) {
+        if (!nodeDepths.has(node.id)) {
+            cyclicNodes.push(node);
+        }
+    }
+    
+    if (cyclicNodes.length > 0) {
+        columns[depth] = cyclicNodes;
+    }
+
+
+    // --- Step 4: Assign Positions Based on Columns ---
+    const x_gap = 350;
+    const y_gap = 180;
+
+    columns.forEach((col, colIndex) => {
+        // Sort nodes in a column alphabetically for a stable layout
+        col.sort((a, b) => a.id.localeCompare(b.id)); 
+        col.forEach((node, nodeIndex) => {
+            node.position = {
+                x: colIndex * x_gap,
+                y: nodeIndex * y_gap
+            };
+        });
+    });
+
+    const initialNodes = Array.from(nodes.values());
+    const initialEdges = Array.from(edges).map(edgeId => {
+        const [source, target] = edgeId.split('->');
+        return { id: edgeId, source, target };
+    });
+
+    return { initialNodes, initialEdges };
 };
 
-function calculateLayout(nodes, edges) {
-    // Increased spacing for better visualization
-    const HORIZONTAL_SPACING = 400; // Increased from 300
-    const VERTICAL_SPACING = 200;   // Increased from 150
-    const NODES_PER_COLUMN = 8;     // Reduced for better spacing
-    
-    // Build adjacency maps for performance
-    const childrenMap = new Map();
-    const parentMap = new Map();
-    
-    // Initialize maps
-    nodes.forEach(node => {
-        childrenMap.set(node.id, []);
-        parentMap.set(node.id, []);
-    });
-    
-    // Build relationships
-    edges.forEach(edge => {
-        childrenMap.get(edge.source).push(edge.target);
-        parentMap.get(edge.target).push(edge.source);
-    });
-    
-    // Find root nodes (no incoming edges)
-    const rootNodes = nodes.filter(node => parentMap.get(node.id).length === 0);
-    
-    if (rootNodes.length === 0 && nodes.length > 0) {
-        rootNodes.push(nodes[0]); // Handle circular dependencies
+
+// This is the "assistant's" main job. It waits for the manager to give it work.
+self.onmessage = (event) => {
+    // It receives the data from app.js
+    const mappings = event.data;
+    if (mappings) {
+        // It does the heavy lifting
+        const { initialNodes, initialEdges } = getLayoutedElements(mappings);
+
+        // It sends the results back to app.js
+        self.postMessage({ initialNodes, initialEdges });
     }
-    
-    // BFS layout with performance optimizations
-    const visited = new Set();
-    const positioned = new Map();
-    let currentColumn = 0;
-    
-    // Process in batches for better performance
-    const queue = rootNodes.map(node => ({ node, column: 0, row: 0 }));
-    const columnSizes = new Map();
-    
-    while (queue.length > 0) {
-        const batch = queue.splice(0, Math.min(100, queue.length)); // Process in batches
-        
-        batch.forEach(({ node, column, row }) => {
-            if (visited.has(node.id)) return;
-            
-            visited.add(node.id);
-            
-            // Calculate position with increased spacing
-            if (!columnSizes.has(column)) {
-                columnSizes.set(column, 0);
-            }
-            
-            const currentRow = columnSizes.get(column);
-            columnSizes.set(column, currentRow + 1);
-            
-            const position = {
-                x: column * HORIZONTAL_SPACING,
-                y: currentRow * VERTICAL_SPACING
-            };
-            
-            positioned.set(node.id, position);
-            currentColumn = Math.max(currentColumn, column);
-            
-            // Add children to next column
-            const children = childrenMap.get(node.id) || [];
-            children.forEach((childId, index) => {
-                if (!visited.has(childId)) {
-                    const childNode = nodes.find(n => n.id === childId);
-                    if (childNode) {
-                        queue.push({ node: childNode, column: column + 1, row: index });
-                    }
-                }
-            });
-        });
-    }
-    
-    // Apply positions to nodes
-    const layoutedNodes = nodes.map(node => {
-        const position = positioned.get(node.id) || { x: 0, y: 0 };
-        return {
-            ...node,
-            position
-        };
-    });
-    
-    return { nodes: layoutedNodes };
-}
+};

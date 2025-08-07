@@ -8,8 +8,6 @@ import ReactFlow, {
   MarkerType,
   Handle,
   Position,
-  getNodesBounds,
-  getViewportForBounds,
 } from 'reactflow';
 
 // Memoized CustomNode component for performance
@@ -184,32 +182,7 @@ function Flow() {
         }
         /* Compact edge styling */
         .react-flow__edge path {
-            stroke-width: 1px !important;
-        }
-        
-        /* Export button styling */
-        .export-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-        
-        .export-button {
-            background-color: #28a745;
-            border: 1px solid #28a745;
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            transition: all 0.2s ease;
-        }
-        
-        .export-button:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
+            stroke-width: 1.5px !important;
         }
     </style>
     <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
@@ -219,8 +192,7 @@ function Flow() {
             "react": "https://esm.sh/react@18.2.0",
             "react-dom": "https://esm.sh/react-dom@18.2.0",
             "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-            "reactflow": "https://esm.sh/reactflow@11.11.1?deps=react@18.2.0,react-dom@18.2.0",
-            "html2canvas": "https://esm.sh/html2canvas@1.4.1"
+            "reactflow": "https://esm.sh/reactflow@11.11.1?deps=react@18.2.0,react-dom@18.2.0"
         }
     }
     </script>
@@ -231,7 +203,6 @@ function Flow() {
         import React from 'react';
         import { createRoot } from 'react-dom/client';
         import ReactFlow, { Controls, Background, Position, Handle, MarkerType } from 'reactflow';
-        import html2canvas from 'html2canvas';
 
         const CustomNode = React.memo(({ data }) => {
             return React.createElement(
@@ -288,9 +259,9 @@ function Flow() {
                 roots.push(nodes[0]);
             }
             
-            // More spacious spacing for path view
-            const HORIZONTAL_SPACING = 350;  // Increased spacing
-            const VERTICAL_SPACING = 150;    // Increased spacing
+            // Ultra-compact spacing
+            const HORIZONTAL_SPACING = 280;  // Increased from 180
+            const VERTICAL_SPACING = 120;    // Increased from 80
             
             let currentColumn = 0;
             const visited = new Set();
@@ -331,7 +302,7 @@ function Flow() {
                 columns.get(column).push(nodeMap.get(nodeId));
             });
             
-            // Position nodes with increased spacing
+            // Position nodes with ultra-compact spacing
             columns.forEach((columnNodes, columnIndex) => {
                 // Sort nodes in each column alphabetically for consistency
                 columnNodes.sort((a, b) => a.id.localeCompare(b.id));
@@ -349,7 +320,7 @@ function Flow() {
 
         const nodeTypes = { customNode: CustomNode };
         const defaultEdgeOptions = {
-            type: 'smoothstep', // This creates curved/bent edges
+            type: 'smoothstep',
             className: 'n8n-edge highlighted',
             markerEnd: { type: MarkerType.ArrowClosed }
         };
@@ -357,64 +328,27 @@ function Flow() {
         let pathNodes = ${JSON.stringify(filteredNodes)};
         const pathEdges = ${JSON.stringify(filteredEdges)};
         
-        // Apply compact layout
+        // Apply ultra-compact layout - completely ignoring original positions
         pathNodes = getCompactLayout(pathNodes, pathEdges);
-
-        function exportToPNG() {
-            const element = document.querySelector('.react-flow');
-            if (!element) return;
-            
-            html2canvas(element, {
-                backgroundColor: '#1a192b',
-                scale: 2,
-                useCORS: true,
-                allowTaint: true
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'codemap-path.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            }).catch(error => {
-                console.error('Export failed:', error);
-                alert('Export failed. Please try again.');
-            });
-        }
 
         function PathView() {
             return React.createElement(
-                'div',
-                { style: { width: '100%', height: '100%', position: 'relative' } },
-                React.createElement(
-                    'div',
-                    { className: 'export-controls' },
-                    React.createElement(
-                        'button',
-                        {
-                            className: 'export-button',
-                            onClick: exportToPNG,
-                            title: 'Export path as PNG image'
-                        },
-                        '📷 Export PNG'
-                    )
-                ),
-                React.createElement(
-                    ReactFlow,
-                    {
-                        nodes: pathNodes,
-                        edges: pathEdges,
-                        nodeTypes: nodeTypes,
-                        fitView: true,
-                        fitViewOptions: { padding: 0.05, maxZoom: 1.5, minZoom: 0.3 },
-                        defaultEdgeOptions: defaultEdgeOptions,
-                        nodesDraggable: true,
-                        nodesConnectable: false,
-                        proOptions: { hideAttribution: true },
-                        minZoom: 0.1,
-                        maxZoom: 3
-                    },
-                    React.createElement(Controls),
-                    React.createElement(Background, { variant: 'dots', gap: 12, size: 1 })
-                )
+                ReactFlow,
+                {
+                    nodes: pathNodes,
+                    edges: pathEdges,
+                    nodeTypes: nodeTypes,
+                    fitView: true,
+                    fitViewOptions: { padding: 0.05, maxZoom: 1.5, minZoom: 0.3 },
+                    defaultEdgeOptions: defaultEdgeOptions,
+                    nodesDraggable: true,
+                    nodesConnectable: false,
+                    proOptions: { hideAttribution: true },
+                    minZoom: 0.1,
+                    maxZoom: 3
+                },
+                React.createElement(Controls),
+                React.createElement(Background, { variant: 'dots', gap: 12, size: 1 })
             );
         }
 
@@ -432,7 +366,7 @@ function Flow() {
     }, [nodes, edges, highlightedPath]);
 
     const defaultEdgeOptions = useMemo(() => ({
-        type: 'smoothstep', // Changed from 'smoothstep' to create more curved edges
+        type: 'smoothstep',
         className: 'n8n-edge',
         markerEnd: {
             type: MarkerType.ArrowClosed,
@@ -441,24 +375,14 @@ function Flow() {
 
     useEffect(() => {
         setIsLoading(true);
+        // *** THIS IS THE FIX ***
+        // Load the worker from the public folder using a root-relative path.
         const worker = new Worker('/layout.worker.js');
 
         worker.onmessage = (event) => {
             const { initialNodes, initialEdges } = event.data;
-            
-            // Optimize for large datasets - limit initial render to 3000 nodes
-            if (initialNodes.length > 3000) {
-                console.warn(`Large dataset detected: ${initialNodes.length} nodes. Rendering first 3000 for performance.`);
-                setNodes(initialNodes.slice(0, 3000));
-                setEdges(initialEdges.filter(edge => 
-                    initialNodes.slice(0, 3000).some(node => node.id === edge.source) &&
-                    initialNodes.slice(0, 3000).some(node => node.id === edge.target)
-                ));
-            } else {
-                setNodes(initialNodes);
-                setEdges(initialEdges);
-            }
-            
+            setNodes(initialNodes);
+            setEdges(initialEdges);
             setIsLoading(false);
             worker.terminate();
         };
@@ -489,12 +413,6 @@ function Flow() {
                     throw new Error(`API request failed with status: ${response.status}`);
                 }
                 const mappings = await response.json();
-                
-                // Pre-filter large datasets at API level
-                if (mappings.length > 6000) {
-                    console.warn(`Very large dataset: ${mappings.length} items. Consider server-side pagination.`);
-                }
-                
                 worker.postMessage(mappings);
             } catch (error) {
                 console.error("Failed to fetch API data:", error);
@@ -558,9 +476,9 @@ function Flow() {
                 fitView: true,
                 fitViewOptions: { padding: 0.1 },
                 defaultEdgeOptions: defaultEdgeOptions,
-                nodesDraggable: true, // Enable dragging
+                nodesDraggable: false,
                 nodesConnectable: false,
-                onlyRenderVisibleElements: true, // Performance optimization
+                onlyRenderVisibleElements: true,
                 proOptions: { hideAttribution: true },
                 minZoom: 0.001
             },
