@@ -227,9 +227,12 @@ function Flow() {
             line-height: 1.1 !important;
             opacity: 0.8 !important;
         }
-        /* Compact edge styling */
-        .react-flow__edge path {
-            stroke-width: 1.5px !important;
+        /* Compact edge styling for Bezier curves */
+        .react-flow__edge.n8n-edge .react-flow__edge-path {
+            stroke-width: 1px !important; /* Thin lines for path view */
+        }
+        .react-flow__edge.n8n-edge.highlighted .react-flow__edge-path {
+            stroke-width: 2px !important; /* Slightly thicker for highlighted */
         }
         .export-button {
             position: absolute;
@@ -390,7 +393,7 @@ function Flow() {
 
         const nodeTypes = { customNode: CustomNode };
         const defaultEdgeOptions = {
-            type: 'smoothstep',
+            type: 'default', // Changed to 'default' for Bezier curves
             className: 'n8n-edge highlighted',
             markerEnd: { type: MarkerType.ArrowClosed }
         };
@@ -470,7 +473,7 @@ function Flow() {
     }, [nodes, edges, highlightedPath]);
 
     const defaultEdgeOptions = useMemo(() => ({
-        type: 'smoothstep',
+        type: 'default', // Changed from 'smoothstep' to 'default' for Bezier curves
         className: 'n8n-edge',
         markerEnd: {
             type: MarkerType.ArrowClosed,
