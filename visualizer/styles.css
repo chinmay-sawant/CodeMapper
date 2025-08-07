@@ -73,7 +73,7 @@ body {
 /* 2. Target edges with our custom 'n8n-edge' class for high specificity */
 .react-flow__edge.n8n-edge .react-flow__edge-path {
   stroke: #ffffff; /* Use pure white for max visibility */
-  stroke-width: 1.5;
+  stroke-width: 1; /* Made thinner from 1.5 */
 
   /* Apply the animation */
   stroke-dasharray: 10;
@@ -88,7 +88,7 @@ body {
 /* 4. Highlighted edge styling for path backtracking */
 .react-flow__edge.n8n-edge.highlighted .react-flow__edge-path {
   stroke: #ffd700 !important; /* Golden yellow for highlighted path */
-  stroke-width: 3 !important;
+  stroke-width: 2 !important; /* Made thinner from 3 */
   filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
 
   /* Keep the animation but make it more prominent */
@@ -128,6 +128,7 @@ body {
   z-index: 1000;
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .path-button {
@@ -165,6 +166,16 @@ body {
 .path-button.secondary:hover {
   background-color: #e55555;
   border-color: #e55555;
+}
+
+.path-button.success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.path-button.success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
 }
 
 /* Loading indicator styling */
