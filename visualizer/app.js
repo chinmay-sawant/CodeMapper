@@ -84,13 +84,60 @@ function Flow() {
         return { pathNodes, pathEdges };
     }, []);
 
+    const findForwardPath = useCallback((sourceNodeId, currentEdges) => {
+        const pathNodes = new Set([sourceNodeId]);
+        const pathEdges = new Set();
+        const queue = [sourceNodeId];
+        const visited = new Set([sourceNodeId]);
+
+        const outgoingEdgesMap = new Map();
+        currentEdges.forEach(edge => {
+            if (!outgoingEdgesMap.has(edge.source)) {
+                outgoingEdgesMap.set(edge.source, []);
+            }
+            outgoingEdgesMap.get(edge.source).push(edge);
+        });
+
+        while (queue.length > 0) {
+            const currentNodeId = queue.shift();
+            const outgoing = outgoingEdgesMap.get(currentNodeId) || [];
+            for (const edge of outgoing) {
+                if (!visited.has(edge.target)) {
+                    visited.add(edge.target);
+                    pathNodes.add(edge.target);
+                    pathEdges.add(edge.id);
+                    queue.push(edge.target);
+                }
+            }
+        }
+        return { pathNodes, pathEdges };
+    }, []);
+
+    const isRootNode = useCallback((nodeId, currentEdges) => {
+        return !currentEdges.some(edge => edge.target === nodeId);
+    }, []);
+
     const onNodeClick = useCallback((event, node) => {
         if (currentlyClickedNode === node.id) {
             clearHighlights();
             return;
         }
 
-        const { pathNodes, pathEdges } = findPathToRoot(node.id, edges);
+        let pathNodes, pathEdges;
+        
+        // Check if this is a root node (no incoming edges)
+        if (isRootNode(node.id, edges)) {
+            // For root nodes, highlight all forward connections
+            const result = findForwardPath(node.id, edges);
+            pathNodes = result.pathNodes;
+            pathEdges = result.pathEdges;
+        } else {
+            // For non-root nodes, highlight backward path to root
+            const result = findPathToRoot(node.id, edges);
+            pathNodes = result.pathNodes;
+            pathEdges = result.pathEdges;
+        }
+
         setHighlightedPath({ nodes: pathNodes, edges: pathEdges });
 
         setNodes(currentNodes =>
@@ -116,7 +163,7 @@ function Flow() {
         );
 
         setCurrentlyClickedNode(node.id);
-    }, [edges, findPathToRoot, currentlyClickedNode]);
+    }, [edges, findPathToRoot, findForwardPath, isRootNode, currentlyClickedNode]);
 
     const clearHighlights = useCallback(() => {
         setCurrentlyClickedNode(null);
@@ -187,20 +234,24 @@ function Flow() {
         .export-button {
             position: absolute;
             top: 10px;
-            right: 120px;
+            right: 10px;
             z-index: 10;
-            background-color: #2a293b;
-            border: 1px solid #4a495b;
-            color: #f0f0f0;
-            padding: 8px 12px;
+            background-color: #28a745;
+            border: 1px solid #28a745;
+            color: #ffffff;
+            padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
             font-weight: bold;
             transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .export-button:hover {
-            background-color: #3a394b;
+            background-color: #218838;
+            border-color: #1e7e34;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
     </style>
     <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
@@ -217,7 +268,7 @@ function Flow() {
 </head>
 <body>
     <div id="root" style="width:100vw;height:100vh;position:relative;"></div>
-    <button class="export-button" id="exportBtn">Export as PNG</button>
+    <button class="export-button" id="exportBtn">📷 Export PNG</button>
     <script type="module">
         import React from 'react';
         import { createRoot } from 'react-dom/client';
@@ -376,17 +427,31 @@ function Flow() {
         const root = createRoot(document.getElementById('root'));
         root.render(React.createElement(React.StrictMode, null, React.createElement(PathView)));
 
-        // Export button handler (plain JS, not React hook)
+        // Enhanced export button handler with improved quality
         document.getElementById('exportBtn').onclick = function() {
             const viewport = document.querySelector('.react-flow__viewport');
             if (!viewport) return;
+            
+            // Calculate dimensions for high DPI
+            const pixelRatio = window.devicePixelRatio || 2;
+            const width = viewport.scrollWidth * pixelRatio;
+            const height = viewport.scrollHeight * pixelRatio;
+            
             toPng(viewport, {
                 backgroundColor: '#1a192b',
-                width: viewport.scrollWidth,
-                height: viewport.scrollHeight,
+                width: width,
+                height: height,
+                pixelRatio: pixelRatio,
+                quality: 1.0,
+                canvasWidth: width,
+                canvasHeight: height,
+                style: {
+                    transform: 'scale(' + pixelRatio + ')',
+                    transformOrigin: 'top left'
+                }
             }).then((dataUrl) => {
                 const link = document.createElement('a');
-                link.download = 'codemapper-path.png';
+                link.download = 'codemapper-path-hq.png';
                 link.href = dataUrl;
                 link.click();
             }).catch(err => {
@@ -491,6 +556,46 @@ function Flow() {
                     title: 'Open highlighted path in new window'
                 },
                 '🔗 View Path'
+            ),
+            React.createElement(
+                'button',
+                {
+                    className: 'path-button export',
+                    onClick: () => {
+                        const viewport = document.querySelector('.react-flow__viewport');
+                        if (!viewport) return;
+                        
+                        // Enhanced export with high quality
+                        import('https://esm.sh/html-to-image@1.11.11').then(({ toPng }) => {
+                            const pixelRatio = window.devicePixelRatio || 2;
+                            const width = viewport.scrollWidth * pixelRatio;
+                            const height = viewport.scrollHeight * pixelRatio;
+                            
+                            toPng(viewport, {
+                                backgroundColor: '#1a192b',
+                                width: width,
+                                height: height,
+                                pixelRatio: pixelRatio,
+                                quality: 1.0,
+                                canvasWidth: width,
+                                canvasHeight: height,
+                                style: {
+                                    transform: 'scale(' + pixelRatio + ')',
+                                    transformOrigin: 'top left'
+                                }
+                            }).then((dataUrl) => {
+                                const link = document.createElement('a');
+                                link.download = 'codemapper-full-view-hq.png';
+                                link.href = dataUrl;
+                                link.click();
+                            }).catch(err => {
+                                console.error('Failed to export PNG:', err);
+                            });
+                        });
+                    },
+                    title: 'Export current view as high-quality PNG'
+                },
+                '📷 Export PNG'
             ),
             React.createElement(
                 'button',

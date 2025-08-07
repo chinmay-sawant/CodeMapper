@@ -140,11 +140,13 @@ body {
   font-size: 12px;
   font-weight: bold;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .path-button:hover {
   background-color: #3a394b;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 .path-button.primary {
@@ -155,6 +157,17 @@ body {
 .path-button.primary:hover {
   background-color: #357abd;
   border-color: #357abd;
+}
+
+.path-button.export {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: #ffffff;
+}
+
+.path-button.export:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
 }
 
 .path-button.secondary {
@@ -168,20 +181,23 @@ body {
 }
 
 .export-button {
-  background-color: #2a293b;
-  border: 1px solid #4a495b;
-  color: #f0f0f0;
+  background-color: #28a745;
+  border: 1px solid #28a745;
+  color: #ffffff;
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
   font-weight: bold;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .export-button:hover {
-  background-color: #3a394b;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background-color: #218838;
+  border-color: #1e7e34;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Loading indicator styling */
