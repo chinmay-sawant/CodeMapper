@@ -167,6 +167,23 @@ body {
   border-color: #e55555;
 }
 
+.export-button {
+  background-color: #2a293b;
+  border: 1px solid #4a495b;
+  color: #f0f0f0;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.export-button:hover {
+  background-color: #3a394b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 /* Loading indicator styling */
 .loading-indicator {
   display: flex;

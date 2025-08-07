@@ -184,6 +184,24 @@ function Flow() {
         .react-flow__edge path {
             stroke-width: 1.5px !important;
         }
+        .export-button {
+            position: absolute;
+            top: 10px;
+            right: 120px;
+            z-index: 10;
+            background-color: #2a293b;
+            border: 1px solid #4a495b;
+            color: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .export-button:hover {
+            background-color: #3a394b;
+        }
     </style>
     <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -198,11 +216,13 @@ function Flow() {
     </script>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root" style="width:100vw;height:100vh;position:relative;"></div>
+    <button class="export-button" id="exportBtn">Export as PNG</button>
     <script type="module">
         import React from 'react';
         import { createRoot } from 'react-dom/client';
         import ReactFlow, { Controls, Background, Position, Handle, MarkerType } from 'reactflow';
+        import { toPng } from 'https://esm.sh/html-to-image@1.11.11';
 
         const CustomNode = React.memo(({ data }) => {
             return React.createElement(
@@ -230,7 +250,6 @@ function Flow() {
             );
         });
 
-        // Completely rewritten compact layout algorithm
         function getCompactLayout(nodes, edges) {
             // Create a fresh copy of nodes with reset positions
             const nodeMap = new Map(nodes.map(n => [n.id, { ...n, position: { x: 0, y: 0 } }]));
@@ -327,33 +346,53 @@ function Flow() {
 
         let pathNodes = ${JSON.stringify(filteredNodes)};
         const pathEdges = ${JSON.stringify(filteredEdges)};
-        
-        // Apply ultra-compact layout - completely ignoring original positions
         pathNodes = getCompactLayout(pathNodes, pathEdges);
 
         function PathView() {
             return React.createElement(
-                ReactFlow,
-                {
-                    nodes: pathNodes,
-                    edges: pathEdges,
-                    nodeTypes: nodeTypes,
-                    fitView: true,
-                    fitViewOptions: { padding: 0.05, maxZoom: 1.5, minZoom: 0.3 },
-                    defaultEdgeOptions: defaultEdgeOptions,
-                    nodesDraggable: true,
-                    nodesConnectable: false,
-                    proOptions: { hideAttribution: true },
-                    minZoom: 0.1,
-                    maxZoom: 3
-                },
-                React.createElement(Controls),
-                React.createElement(Background, { variant: 'dots', gap: 12, size: 1 })
+                'div',
+                { style: { width: '100%', height: '100%', position: 'relative' } },
+                React.createElement(
+                    ReactFlow,
+                    {
+                        nodes: pathNodes,
+                        edges: pathEdges,
+                        nodeTypes: nodeTypes,
+                        fitView: true,
+                        fitViewOptions: { padding: 0.05, maxZoom: 1.5, minZoom: 0.3 },
+                        defaultEdgeOptions: defaultEdgeOptions,
+                        nodesDraggable: true,
+                        nodesConnectable: false,
+                        proOptions: { hideAttribution: true },
+                        minZoom: 0.1,
+                        maxZoom: 3
+                    },
+                    React.createElement(Controls),
+                    React.createElement(Background, { variant: 'dots', gap: 12, size: 1 })
+                )
             );
         }
 
         const root = createRoot(document.getElementById('root'));
         root.render(React.createElement(React.StrictMode, null, React.createElement(PathView)));
+
+        // Export button handler (plain JS, not React hook)
+        document.getElementById('exportBtn').onclick = function() {
+            const viewport = document.querySelector('.react-flow__viewport');
+            if (!viewport) return;
+            toPng(viewport, {
+                backgroundColor: '#1a192b',
+                width: viewport.scrollWidth,
+                height: viewport.scrollHeight,
+            }).then((dataUrl) => {
+                const link = document.createElement('a');
+                link.download = 'codemapper-path.png';
+                link.href = dataUrl;
+                link.click();
+            }).catch(err => {
+                console.error('Failed to export PNG:', err);
+            });
+        };
     </script>
 </body>
 </html>`;
@@ -476,7 +515,7 @@ function Flow() {
                 fitView: true,
                 fitViewOptions: { padding: 0.1 },
                 defaultEdgeOptions: defaultEdgeOptions,
-                nodesDraggable: false,
+                nodesDraggable: true,
                 nodesConnectable: false,
                 onlyRenderVisibleElements: true,
                 proOptions: { hideAttribution: true },
