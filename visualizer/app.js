@@ -348,7 +348,7 @@ function Flow() {
                     maxZoom: 3
                 },
                 React.createElement(Controls),
-                React.createElement(Background, { variant: 'dots', gap: 8, size: 1 })
+                React.createElement(Background, { variant: 'dots', gap: 12, size: 1 })
             );
         }
 
