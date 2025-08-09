@@ -76,15 +76,14 @@ body {
 /* 2. Target edges with our custom 'n8n-edge' class for high specificity */
 .react-flow__edge.n8n-edge .react-flow__edge-path {
   stroke: #ffffff; /* Use pure white for max visibility */
-  stroke-width: 1; /* Thinner line for Bezier curves */
+  stroke-width: 1.25; /* Slightly thicker to reduce aliasing shimmer */
 
-  /* Apply the animation with synchronized values */
-  stroke-dasharray: 8 8; /* 8px dash, 8px gap = 16px total pattern */
-  animation: dash-animation 1.2s linear infinite;
+  /* Make the stroke stable on zoom and avoid constant compositing */
+  stroke-dasharray: none;
+  vector-effect: non-scaling-stroke;
+  shape-rendering: geometricPrecision;
 
-  /* Add hardware acceleration for smoother animation */
-  will-change: stroke-dashoffset;
-  transform: translateZ(0); /* Force GPU acceleration */
+  /* removed animation, will-change and transform to prevent flicker */
 }
 
 /* 3. Style the arrowhead for our custom edges */
@@ -98,13 +97,11 @@ body {
   stroke-width: 2 !important; /* Slightly thicker for highlighted */
   filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
 
-  /* Keep the animation but make it more prominent with synchronized values */
+  /* Keep the animation only for highlighted edges */
   stroke-dasharray: 10 6; /* 10px dash, 6px gap = 16px total pattern */
   animation: dash-animation 1s linear infinite;
 
-  /* Hardware acceleration */
-  will-change: stroke-dashoffset;
-  transform: translateZ(0);
+  /* removed will-change and transform to avoid re-rasterization flicker */
 }
 
 /* 5. Highlighted arrowhead for path backtracking */

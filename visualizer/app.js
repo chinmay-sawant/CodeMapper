@@ -625,7 +625,8 @@ function Flow() {
                 defaultEdgeOptions: defaultEdgeOptions,
                 nodesDraggable: true,
                 nodesConnectable: false,
-                onlyRenderVisibleElements: true,
+                // Disable virtualization to prevent edge flicker on pan/zoom
+                onlyRenderVisibleElements: false,
                 proOptions: { hideAttribution: true },
                 minZoom: 0.001
             },
