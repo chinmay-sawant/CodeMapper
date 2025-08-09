@@ -6,11 +6,9 @@ CodeMapper is a tool designed to **analyze large Go codebases** and visualize fu
 It helps you understand how functions and methods are connected across your project, making onboarding and refactoring much easier! 🚀
 
 ---
-
 ## Problem Statement ❓
 
-When working with **40+ repositories**, it becomes a nightmare to manually analyze, trace, and understand all the interdependencies between functions and packages.  
-CodeMapper automates this process, saving you countless hours and reducing the risk of missing critical connections. 🔍
+Analyzing over **40+ repositories** for a recent project was extremely time-consuming and challenging, especially given the tight deadlines and complex interdependencies between packages. Manual tracing of function calls and dependencies quickly became unmanageable. To address this, I built CodeMapper to automate the analysis and visualization process, making it much faster and easier to understand large Go codebases.
 
 ---
 
@@ -43,8 +41,9 @@ CodeMapper automates this process, saving you countless hours and reducing the r
 1. **Install Go** (if not already):  
    [Download Go](https://go.dev/dl/)
 
-2. **Install Go dependencies**:  
+2. **Clone the repository and install dependencies**:  
    ```bash
+   git clone https://github.com/chinmay-sawant/CodeMapper.git
    cd CodeMapper
    go mod tidy
    ```
@@ -66,23 +65,21 @@ CodeMapper automates this process, saving you countless hours and reducing the r
 
 ```bash
 # 1. Build and run CodeMapper on your Go project
-go get golang.org/x/mod/modfile
-go get golang.org/x/mod/module
-
-go run main.go -path ./YourGoProject -serve :8080
-go run main.go -path ./YourGoProject -serve :8080
-go run main.go -path "./EmployeeApp" -out "local-map.json"
-
-go run main.go -path "./EmployeeApp" -analyze-deps "bitbucket.org/ggwp" -out "full-codemap.json" -serve ":8080" -skip "ent,generated"
-
-if autodetection fails, you can specify GOPATH:
-go run main.go -path "C:\Users\acer\projects\my-app" -gopath "C:\Users\acer\go\pkg\mod" -analyze-deps "bitbucket.org/ggwp" -out "full-codemap.json"
-
-go run main.go -path "./revel" -gopath "C:\Users\acer\go\pkg\mod" -analyze-deps "bitbucket.org/ggwp" -out "full-codemap.json" -serve ":8080"
+go run main.go -path "./revel" -gopath "C:\Users\acer\go\pkg\mod" -analyze-deps "bitbucket.org/ggwp1,bitbucket.org/ggwp2" -out "full-codemap.json" -serve ":8080"
 # 2. Open your browser and visit
 http://localhost:8080
 ```
+## Command Line Arguments Documentation
 
+This application accepts the following command line arguments:
+
+- `-path`: Specifies the path to the project directory to analyze (e.g., `./revel`).
+- `-gopath`: Sets the Go module cache directory (e.g., `C:\Users\acer\go\pkg\mod`).
+- `-analyze-deps`: Comma-separated list of dependencies to analyze (e.g., `bitbucket.org/ggwp1,bitbucket.org/ggwp2`).
+- `-out`: Output file name for the generated code map (e.g., `full-codemap.json`).
+- `-serve`: Starts a web server on the specified address to serve the results (e.g., `:8080`).
+
+Example usage:
 ---
 
 ## Project Structure 🏗️
