@@ -5,6 +5,8 @@
 CodeMapper is a tool designed to **analyze large Go codebases** and visualize function dependencies in an interactive graph.  
 It helps you understand how functions and methods are connected across your project, making onboarding and refactoring much easier! 🚀
 
+> **UI Inspiration:**  
+> The interactive graph UI is inspired by the intuitive workflow editor of [n8n.io](https://n8n.io/), making it easy to explore and understand complex code relationships visually.
 ---
 ## Problem Statement ❓
 
