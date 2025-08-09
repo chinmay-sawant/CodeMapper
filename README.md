@@ -79,7 +79,6 @@ This application accepts the following command line arguments:
 - `-out`: Output file name for the generated code map (e.g., `full-codemap.json`).
 - `-serve`: Starts a web server on the specified address to serve the results (e.g., `:8080`).
 
-Example usage:
 ---
 
 ## Project Structure 🏗️
