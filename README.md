@@ -107,10 +107,8 @@ http://localhost:8080
 ![Front Tracking to Find References](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image5.png)
 
 ---
+## Made with ❤️ in India
+---
 ## License 📄
 
 MIT
-
----
-
-## Made with ❤️ for developers who want to see the big picture!
