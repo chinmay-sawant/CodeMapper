@@ -409,8 +409,9 @@ function Flow() {
                 React.createElement(
                     ReactFlow,
                     {
-                        nodes: pathNodes,
-                        edges: pathEdges,
+                        // CHANGED: make nodes draggable by using uncontrolled props
+                        defaultNodes: pathNodes,
+                        defaultEdges: pathEdges,
                         nodeTypes: nodeTypes,
                         fitView: true,
                         fitViewOptions: { padding: 0.05, maxZoom: 1.5, minZoom: 0.3 },
