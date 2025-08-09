@@ -97,11 +97,15 @@ http://localhost:8080
 ### Sample Screenshot
 ![Sample Screenshot](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image1.png)
 
-
+### Full Screenshot
 ![Full Screenshot](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image2.png)
+### Visual Backtracking
 ![Visual Backtracking](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image3.png)
+### Path View  
 ![Path View](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image4.png)
+### Front Tracking to Find References
 ![Front Tracking to Find References](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image5.png)
+
 ---
 ## License 📄
 
