@@ -78,7 +78,7 @@ go run main.go -path "./EmployeeApp" -analyze-deps "bitbucket.org/ggwp" -out "fu
 if autodetection fails, you can specify GOPATH:
 go run main.go -path "C:\Users\acer\projects\my-app" -gopath "C:\Users\acer\go\pkg\mod" -analyze-deps "bitbucket.org/ggwp" -out "full-codemap.json"
 
-
+go run main.go -path "./revel" -gopath "C:\Users\acer\go\pkg\mod" -analyze-deps "bitbucket.org/ggwp" -out "full-codemap.json" -serve ":8080"
 # 2. Open your browser and visit
 http://localhost:8080
 ```
