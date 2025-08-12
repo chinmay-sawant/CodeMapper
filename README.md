@@ -67,7 +67,7 @@ Analyzing over **40+ repositories** for a recent project was extremely time-cons
 
 ```bash
 # 1. Build and run CodeMapper on your Go project
-go run main.go -path "./revel" -gopath "C:\Users\acer\go\pkg\mod" -analyze-deps "bitbucket.org/ggwp1,bitbucket.org/ggwp2" -out "full-codemap.json" -serve ":8080"
+go run main.go -path "./ollama" -gopath "C:\Users\acer\go\pkg\mod" -analyze-deps "bitbucket.org/ggwp1,bitbucket.org/ggwp2" -out "full-codemap.json" -serve ":8080"
 # 2. Open your browser and visit
 http://localhost:8080
 ```
