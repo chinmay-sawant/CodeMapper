@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CodeMapper</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <button
+      id="themeToggle"
+      aria-label="Toggle dark mode"
+      title="Toggle theme"
+    ></button>
+
+    <header class="hero">
+      <h1>CodeMapper 🗺️</h1>
+      <p>Analyze large Go codebases and visualize function dependencies.</p>
+    </header>
+
+    <section class="carousel-wrapper">
+      <div class="carousel" id="carousel">
+        <div class="slides" id="slides">
+          <!-- Slides injected by JS -->
+        </div>
+        <button class="nav prev" id="prevBtn" aria-label="Previous slide">
+          ◀
+        </button>
+        <button class="nav next" id="nextBtn" aria-label="Next slide">▶</button>
+        <div class="dots" id="dots"></div>
+      </div>
+    </section>
+
+    <main class="content">
+      <section>
+        <h2>Overview</h2>
+        <p>
+          CodeMapper is a tool designed to analyze large Go codebases and
+          visualize function dependencies in an interactive graph. It helps you
+          understand how functions and methods are connected across your
+          project, making onboarding and refactoring easier.
+        </p>
+        <p>
+          <strong>UI Inspiration:</strong> Inspired by n8n.io for intuitive
+          graph exploration.
+        </p>
+      </section>
+
+      <section>
+        <h2>Problem Statement ❓</h2>
+        <p>
+          Manually tracing dependencies across 40+ repositories is slow and
+          error-prone. CodeMapper automates discovery and visualization of
+          relationships.
+        </p>
+      </section>
+
+      <section>
+        <h2>Features ✨</h2>
+        <ul>
+          <li>Automatic Go code analysis</li>
+          <li>Dependency mapping between functions and methods</li>
+          <li>Interactive visualization (drag nodes to rearrange)</li>
+          <li>Simple CLI workflow</li>
+          <li>Front tracking and backtracking of dependencies</li>
+          <li>Export visualization as PNG</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>How It Works ⚙️</h2>
+        <ol>
+          <li>Scans your Go project for definitions and call sites.</li>
+          <li>Generates a dependency map (JSON).</li>
+          <li>Serves an interactive visualization.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Quick Start 🚦</h2>
+        <pre><code>go run main.go -path "./proj" -gopath "/user/go/pkg/mod" \
+-analyze-deps "example.org/dep1,example.org/dep2" \
+-out "full-codemap.json" -serve ":8080"
+# Open http://localhost:8080
+</code></pre>
+      </section>
+
+      <section>
+        <h2>Command Line Arguments</h2>
+        <ul>
+          <li>-path: project directory</li>
+          <li>-gopath: Go module cache directory</li>
+          <li>-analyze-deps: comma-separated dependencies</li>
+          <li>-out: output JSON filename</li>
+          <li>-serve: start server address</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>License 📄</h2>
+        <p>MIT</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        Made with ❤️ in India •
+        <a
+          href="https://github.com/chinmay-sawant/CodeMapper"
+          target="_blank"
+          rel="noopener"
+          >GitHub</a
+        >
+      </p>
+    </footer>
+
+    <script>
+      // Inline JS to avoid CORS restrictions when opened via file://
+      (function () {
+        const RAW_BASE =
+          "https://raw.githubusercontent.com/chinmay-sawant/CodeMapper/master/screenshot";
+        const images = [1, 2, 3, 4, 5].map((i) => `${RAW_BASE}/image${i}.png`);
+
+        const slidesEl = document.getElementById("slides");
+        const dotsEl = document.getElementById("dots");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const toggleBtn = document.getElementById("themeToggle");
+
+        let index = 0;
+        let timer = null;
+        const INTERVAL = 5000;
+
+        function buildSlides() {
+          slidesEl.innerHTML = images
+            .map(
+              (src) =>
+                '<div class="slide"><img loading="lazy" src="' +
+                src +
+                '" alt="CodeMapper screenshot"></div>'
+            )
+            .join("");
+          dotsEl.innerHTML = images
+            .map(
+              (_, i) =>
+                '<button aria-label="Go to slide ' + (i + 1) + '"></button>'
+            )
+            .join("");
+        }
+
+        function setActive(i) {
+          index = (i + images.length) % images.length;
+          slidesEl.style.transform = "translateX(-" + index * 100 + "%)";
+          Array.from(dotsEl.children).forEach((d, di) =>
+            d.classList.toggle("active", di === index)
+          );
+          resetTimer();
+        }
+
+        function next() {
+          setActive(index + 1);
+        }
+        function prev() {
+          setActive(index - 1);
+        }
+
+        function resetTimer() {
+          if (timer) clearInterval(timer);
+          timer = setInterval(next, INTERVAL);
+        }
+
+        nextBtn.addEventListener("click", next);
+        prevBtn.addEventListener("click", prev);
+        dotsEl.addEventListener("click", (e) => {
+          if (e.target.tagName === "BUTTON") {
+            const i = Array.from(dotsEl.children).indexOf(e.target);
+            setActive(i);
+          }
+        });
+
+        function applyTheme(t) {
+          if (t === "light") {
+            document.body.classList.add("light");
+            toggleBtn.textContent = "🌙";
+          } else {
+            document.body.classList.remove("light");
+            toggleBtn.textContent = "☀️";
+          }
+        }
+
+        const saved = localStorage.getItem("codemapper-theme") || "dark";
+        applyTheme(saved);
+        toggleBtn.addEventListener("click", () => {
+          const nextTheme = document.body.classList.contains("light")
+            ? "dark"
+            : "light";
+          localStorage.setItem("codemapper-theme", nextTheme);
+          applyTheme(nextTheme);
+        });
+
+        buildSlides();
+        setActive(0);
+        resetTimer();
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            clearInterval(timer);
+          } else {
+            resetTimer();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
