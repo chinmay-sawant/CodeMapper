@@ -133,17 +133,30 @@ const getLayoutedElements = (mappings) => {
     const x_gap = 350;
     const y_gap = 180;
 
-    // Calculate total height for centering
-    const maxColumnHeight = Math.max(...columns.map(col => col.length));
+    // Filter out empty columns and calculate total height for centering
+    const nonEmptyColumns = columns.filter(col => col && col.length > 0);
+    if (nonEmptyColumns.length === 0) {
+        // Handle case where no columns exist
+        const initialNodes = Array.from(nodes.values());
+        const initialEdges = Array.from(edges).map(edgeId => {
+            const [source, target] = edgeId.split('->');
+            return { id: edgeId, source, target };
+        });
+        return { initialNodes, initialEdges };
+    }
+
+    const maxColumnHeight = Math.max(...nonEmptyColumns.map(col => col.length));
     const totalHeight = maxColumnHeight * y_gap;
 
     columns.forEach((col, colIndex) => {
+        if (!col || col.length === 0) return; // Skip empty columns
+        
         // Sort nodes in a column alphabetically for a stable layout
         col.sort((a, b) => a.id.localeCompare(b.id)); 
         
         // Calculate vertical offset to center the column
         const columnHeight = col.length * y_gap;
-        const verticalOffset = (totalHeight - columnHeight) / 2;
+        const verticalOffset = Math.max(0, (totalHeight - columnHeight) / 2);
         
         col.forEach((node, nodeIndex) => {
             node.position = {

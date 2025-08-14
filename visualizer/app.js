@@ -236,6 +236,7 @@ function Flow() {
             const height = Math.abs(currentY - selectionStart.y);
             
             setSelectionBox({ x, y, width, height });
+            
         }
     }, [isSelecting, selectionStart]);
 
@@ -559,9 +560,37 @@ function Flow() {
             const [isSelecting, setIsSelecting] = React.useState(false);
             const [selectionBox, setSelectionBox] = React.useState(null);
             const [selectionStart, setSelectionStart] = React.useState(null);
+            const [nodes, setNodes] = React.useState(pathNodes.map(node => ({
+                ...node,
+                selected: false
+            })));
+
+            const onNodesChange = React.useCallback((changes) => {
+                setNodes((nds) => {
+                    const updatedNodes = [...nds];
+                    changes.forEach(change => {
+                        const nodeIndex = updatedNodes.findIndex(n => n.id === change.id);
+                        if (nodeIndex !== -1) {
+                            if (change.type === 'position' && change.position) {
+                                updatedNodes[nodeIndex] = {
+                                    ...updatedNodes[nodeIndex],
+                                    position: change.position
+                                };
+                            } else if (change.type === 'select') {
+                                updatedNodes[nodeIndex] = {
+                                    ...updatedNodes[nodeIndex],
+                                    selected: change.selected
+                                };
+                            }
+                        }
+                    });
+                    return updatedNodes;
+                });
+            }, []);
 
             const onNodeClick = useCallback((event, node) => {
                 if (event.ctrlKey || event.metaKey) {
+                    event.stopPropagation();
                     setSelectedNodes(prev => {
                         const newSet = new Set(prev);
                         if (newSet.has(node.id)) {
@@ -569,6 +598,13 @@ function Flow() {
                         } else {
                             newSet.add(node.id);
                         }
+                        
+                        // Update node selected state immediately
+                        setNodes(nds => nds.map(n => ({
+                            ...n,
+                            selected: newSet.has(n.id)
+                        })));
+                        
                         return newSet;
                     });
                 }
@@ -577,12 +613,14 @@ function Flow() {
             const onPaneClick = useCallback((event) => {
                 if (!event.ctrlKey && !event.metaKey) {
                     setSelectedNodes(new Set());
+                    setNodes(nds => nds.map(n => ({ ...n, selected: false })));
                 }
             }, []);
 
             const onSelectionStart = useCallback((event) => {
                 if ((event.ctrlKey || event.metaKey) && event.target.classList.contains('react-flow__pane')) {
                     event.preventDefault();
+                    event.stopPropagation();
                     const rootElement = document.getElementById('root');
                     if (!rootElement) return;
                     
@@ -599,6 +637,7 @@ function Flow() {
             const onSelectionDrag = useCallback((event) => {
                 if (isSelecting && selectionStart) {
                     event.preventDefault();
+                    event.stopPropagation();
                     const rootElement = document.getElementById('root');
                     if (!rootElement) return;
                     
@@ -612,18 +651,53 @@ function Flow() {
                     const height = Math.abs(currentY - selectionStart.y);
                     
                     setSelectionBox({ x, y, width, height });
+
+                    // Real-time selection highlighting during drag
+                    if (width > 5 && height > 5) {
+                        const selectedNodeIds = new Set(selectedNodes); // Keep existing selections
+                        const rootRect = rootElement.getBoundingClientRect();
+                        
+                        nodes.forEach(node => {
+                            const nodeElement = document.querySelector(\`[data-id="\${node.id.replace(/"/g, '\\\\"')}"]\`);
+                            if (nodeElement) {
+                                const nodeRect = nodeElement.getBoundingClientRect();
+                                const nodeX = nodeRect.left - rootRect.left;
+                                const nodeY = nodeRect.top - rootRect.top;
+                                const nodeWidth = nodeRect.width;
+                                const nodeHeight = nodeRect.height;
+                                
+                                const nodeRight = nodeX + nodeWidth;
+                                const nodeBottom = nodeY + nodeHeight;
+                                const selectionRight = x + width;
+                                const selectionBottom = y + height;
+                                
+                                if (nodeX < selectionRight &&
+                                    nodeRight > x &&
+                                    nodeY < selectionBottom &&
+                                    nodeBottom > y) {
+                                    selectedNodeIds.add(node.id);
+                                }
+                            }
+                        });
+                        
+                        // Update visual selection in real-time
+                        setNodes(nds => nds.map(n => ({
+                            ...n,
+                            selected: selectedNodeIds.has(n.id)
+                        })));
+                    }
                 }
-            }, [isSelecting, selectionStart]);
+            }, [isSelecting, selectionStart, selectedNodes, nodes]);
 
             const onSelectionEnd = useCallback(() => {
                 if (isSelecting && selectionBox && selectionBox.width > 5 && selectionBox.height > 5) {
-                    const selectedNodeIds = new Set();
+                    const selectedNodeIds = new Set(selectedNodes); // Keep existing selections
                     const rootElement = document.getElementById('root');
                     
                     if (rootElement) {
                         const rootRect = rootElement.getBoundingClientRect();
                         
-                        pathNodes.forEach(node => {
+                        nodes.forEach(node => {
                             const nodeElement = document.querySelector(\`[data-id="\${node.id.replace(/"/g, '\\\\"')}"]\`);
                             if (nodeElement) {
                                 const nodeRect = nodeElement.getBoundingClientRect();
@@ -646,18 +720,20 @@ function Flow() {
                             }
                         });
                         
-                        setSelectedNodes(prev => {
-                            const newSet = new Set(prev);
-                            selectedNodeIds.forEach(id => newSet.add(id));
-                            return newSet;
-                        });
+                        setSelectedNodes(selectedNodeIds);
+                        
+                        // Update final node selected state
+                        setNodes(nds => nds.map(n => ({
+                            ...n,
+                            selected: selectedNodeIds.has(n.id)
+                        })));
                     }
                 }
                 
                 setIsSelecting(false);
                 setSelectionBox(null);
                 setSelectionStart(null);
-            }, [isSelecting, selectionBox]);
+            }, [isSelecting, selectionBox, selectedNodes, nodes]);
 
             React.useEffect(() => {
                 const handleMouseMove = (event) => {
@@ -701,11 +777,9 @@ function Flow() {
                 React.createElement(
                     ReactFlow,
                     {
-                        nodes: pathNodes.map(node => ({
-                            ...node,
-                            selected: selectedNodes.has(node.id)
-                        })),
+                        nodes: nodes,
                         edges: pathEdges,
+                        onNodesChange: onNodesChange,
                         nodeTypes: nodeTypes,
                         onNodeClick: onNodeClick,
                         onPaneClick: onPaneClick,
@@ -714,6 +788,8 @@ function Flow() {
                         defaultEdgeOptions: defaultEdgeOptions,
                         nodesDraggable: true,
                         nodesConnectable: false,
+                        elementsSelectable: false,
+                        selectNodesOnDrag: false,
                         proOptions: { hideAttribution: true },
                         minZoom: 0.1,
                         maxZoom: 3
