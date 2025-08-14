@@ -172,6 +172,23 @@ const getLayoutedElements = (mappings) => {
         return { id: edgeId, source, target };
     });
 
+    // --- Step 5: Re-center entire graph around (0,0) for consistent viewport alignment ---
+    if (initialNodes.length > 0) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const n of initialNodes) {
+            minX = Math.min(minX, n.position.x);
+            minY = Math.min(minY, n.position.y);
+            maxX = Math.max(maxX, n.position.x);
+            maxY = Math.max(maxY, n.position.y);
+        }
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        for (const n of initialNodes) {
+            n.position.x -= centerX;
+            n.position.y -= centerY;
+        }
+    }
+
     return { initialNodes, initialEdges };
 };
 
