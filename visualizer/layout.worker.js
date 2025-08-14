@@ -129,18 +129,26 @@ const getLayoutedElements = (mappings) => {
         columns[depth] = cyclicNodes;
     }
 
-
-    // --- Step 4: Assign Positions Based on Columns ---
+    // --- Step 4: Assign Positions Based on Columns with Vertical Centering ---
     const x_gap = 350;
     const y_gap = 180;
+
+    // Calculate total height for centering
+    const maxColumnHeight = Math.max(...columns.map(col => col.length));
+    const totalHeight = maxColumnHeight * y_gap;
 
     columns.forEach((col, colIndex) => {
         // Sort nodes in a column alphabetically for a stable layout
         col.sort((a, b) => a.id.localeCompare(b.id)); 
+        
+        // Calculate vertical offset to center the column
+        const columnHeight = col.length * y_gap;
+        const verticalOffset = (totalHeight - columnHeight) / 2;
+        
         col.forEach((node, nodeIndex) => {
             node.position = {
                 x: colIndex * x_gap,
-                y: nodeIndex * y_gap
+                y: verticalOffset + (nodeIndex * y_gap)
             };
         });
     });

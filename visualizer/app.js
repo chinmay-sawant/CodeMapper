@@ -11,15 +11,11 @@ import ReactFlow, {
 } from 'reactflow';
 
 // Memoized CustomNode component for performance
-const CustomNode = React.memo(({ data }) => {
+const CustomNode = React.memo(({ data, selected }) => {
     return React.createElement(
         'div',
-        {
-            className: 'custom-node',
-            style: data.highlighted ? {
-                border: '2px solid #ffd700',
-                boxShadow: '0 0 10px rgba(255, 215, 0, 0.5)'
-            } : {}
+        { 
+            className: `custom-node ${selected ? 'selected' : ''}`
         },
         React.createElement(Handle, {
             type: 'target',
@@ -51,6 +47,10 @@ function Flow() {
     const [isLoading, setIsLoading] = useState(true);
     const [currentlyClickedNode, setCurrentlyClickedNode] = useState(null);
     const [highlightedPath, setHighlightedPath] = useState({ nodes: new Set(), edges: new Set() });
+    const [selectedNodes, setSelectedNodes] = useState(new Set());
+    const [isSelecting, setIsSelecting] = useState(false);
+    const [selectionBox, setSelectionBox] = useState(null);
+    const [selectionStart, setSelectionStart] = useState(null);
 
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
@@ -118,6 +118,23 @@ function Flow() {
     }, []);
 
     const onNodeClick = useCallback((event, node) => {
+        if (event.ctrlKey || event.metaKey) {
+            // Multi-select mode
+            setSelectedNodes(prev => {
+                const newSet = new Set(prev);
+                if (newSet.has(node.id)) {
+                    newSet.delete(node.id);
+                } else {
+                    newSet.add(node.id);
+                }
+                return newSet;
+            });
+            return;
+        }
+
+        // Clear any selections when clicking normally
+        setSelectedNodes(new Set());
+
         if (currentlyClickedNode === node.id) {
             clearHighlights();
             return;
@@ -168,15 +185,131 @@ function Flow() {
     const clearHighlights = useCallback(() => {
         setCurrentlyClickedNode(null);
         setHighlightedPath({ nodes: new Set(), edges: new Set() });
+        setSelectedNodes(new Set());
         setNodes(nds => nds.map(n => n.data.highlighted ? { ...n, data: { ...n.data, highlighted: false } } : n));
         setEdges(eds => eds.map(e => (e.className || '').includes('highlighted') ? { ...e, className: 'n8n-edge' } : e));
     }, []);
 
-    const onPaneClick = useCallback(() => {
+    const onPaneClick = useCallback((event) => {
         if (currentlyClickedNode) {
             clearHighlights();
         }
+        if (!event.ctrlKey && !event.metaKey) {
+            setSelectedNodes(new Set());
+        }
     }, [currentlyClickedNode, clearHighlights]);
+
+    const onSelectionStart = useCallback((event) => {
+        if ((event.ctrlKey || event.metaKey) && event.target.classList.contains('react-flow__pane')) {
+            event.preventDefault();
+            const reactFlowWrapper = event.currentTarget.closest('.react-flow');
+            if (!reactFlowWrapper) return;
+            
+            const rect = reactFlowWrapper.getBoundingClientRect();
+            const startX = event.clientX - rect.left;
+            const startY = event.clientY - rect.top;
+            
+            setIsSelecting(true);
+            setSelectionStart({ x: startX, y: startY });
+            setSelectionBox({
+                x: startX,
+                y: startY,
+                width: 0,
+                height: 0
+            });
+        }
+    }, []);
+
+    const onSelectionDrag = useCallback((event) => {
+        if (isSelecting && selectionStart) {
+            event.preventDefault();
+            const reactFlowWrapper = document.querySelector('.react-flow');
+            if (!reactFlowWrapper) return;
+            
+            const rect = reactFlowWrapper.getBoundingClientRect();
+            const currentX = event.clientX - rect.left;
+            const currentY = event.clientY - rect.top;
+            
+            const x = Math.min(selectionStart.x, currentX);
+            const y = Math.min(selectionStart.y, currentY);
+            const width = Math.abs(currentX - selectionStart.x);
+            const height = Math.abs(currentY - selectionStart.y);
+            
+            setSelectionBox({ x, y, width, height });
+        }
+    }, [isSelecting, selectionStart]);
+
+    const onSelectionEnd = useCallback(() => {
+        if (isSelecting && selectionBox && selectionBox.width > 5 && selectionBox.height > 5) {
+            const selectedNodeIds = new Set();
+            const reactFlowWrapper = document.querySelector('.react-flow');
+            
+            if (reactFlowWrapper) {
+                const wrapperRect = reactFlowWrapper.getBoundingClientRect();
+                
+                nodes.forEach(node => {
+                    const nodeElement = document.querySelector(`[data-id="${CSS.escape(node.id)}"]`);
+                    if (nodeElement) {
+                        const nodeRect = nodeElement.getBoundingClientRect();
+                        
+                        // Convert node position to wrapper-relative coordinates
+                        const nodeX = nodeRect.left - wrapperRect.left;
+                        const nodeY = nodeRect.top - wrapperRect.top;
+                        const nodeWidth = nodeRect.width;
+                        const nodeHeight = nodeRect.height;
+                        
+                        // Check if node overlaps with selection box
+                        const nodeRight = nodeX + nodeWidth;
+                        const nodeBottom = nodeY + nodeHeight;
+                        const selectionRight = selectionBox.x + selectionBox.width;
+                        const selectionBottom = selectionBox.y + selectionBox.height;
+                        
+                        if (nodeX < selectionRight &&
+                            nodeRight > selectionBox.x &&
+                            nodeY < selectionBottom &&
+                            nodeBottom > selectionBox.y) {
+                            selectedNodeIds.add(node.id);
+                        }
+                    }
+                });
+                
+                setSelectedNodes(prev => {
+                    const newSet = new Set(prev);
+                    selectedNodeIds.forEach(id => newSet.add(id));
+                    return newSet;
+                });
+            }
+        }
+        
+        setIsSelecting(false);
+        setSelectionBox(null);
+        setSelectionStart(null);
+    }, [isSelecting, selectionBox, nodes]);
+
+    // Handle mouse events on document to capture drags outside the pane
+    useEffect(() => {
+        const handleMouseMove = (event) => {
+            if (isSelecting) {
+                onSelectionDrag(event);
+            }
+        };
+
+        const handleMouseUp = (event) => {
+            if (isSelecting) {
+                onSelectionEnd();
+            }
+        };
+
+        if (isSelecting) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isSelecting, onSelectionDrag, onSelectionEnd]);
 
     const openPathInNewWindow = useCallback(() => {
         if (highlightedPath.nodes.size === 0) return;
@@ -184,7 +317,6 @@ function Flow() {
         const filteredNodes = nodes.filter(node => highlightedPath.nodes.has(node.id));
         const filteredEdges = edges.filter(edge => highlightedPath.edges.has(edge.id));
 
-        // Create HTML content for the new window with compact layout
         const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
@@ -256,6 +388,19 @@ function Flow() {
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
+        .selection-box {
+            position: absolute;
+            border: 2px dashed #4a9eff;
+            background-color: rgba(74, 158, 255, 0.1);
+            pointer-events: none;
+            z-index: 1000;
+            border-radius: 4px;
+        }
+        .react-flow__node.selected {
+            box-shadow: 0 0 0 2px #4a9eff !important;
+            transform: scale(1.02);
+            transition: all 0.2s ease;
+        }
     </style>
     <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -273,15 +418,17 @@ function Flow() {
     <div id="root" style="width:100vw;height:100vh;position:relative;"></div>
     <button class="export-button" id="exportBtn">📷 Export PNG</button>
     <script type="module">
-        import React from 'react';
+        import React, { useState, useCallback, useEffect } from 'react';
         import { createRoot } from 'react-dom/client';
         import ReactFlow, { Controls, Background, Position, Handle, MarkerType } from 'reactflow';
         import { toPng } from 'https://esm.sh/html-to-image@1.11.11';
 
-        const CustomNode = React.memo(({ data }) => {
+        const CustomNode = React.memo(({ data, selected }) => {
             return React.createElement(
                 'div',
-                { className: 'custom-node' },
+                { 
+                    className: \`custom-node \${selected ? 'selected' : ''}\`
+                },
                 React.createElement(Handle, {
                     type: 'target',
                     position: Position.Left,
@@ -307,8 +454,8 @@ function Flow() {
         function getCompactLayout(nodes, edges) {
             // Create a fresh copy of nodes with reset positions
             const nodeMap = new Map(nodes.map(n => [n.id, { ...n, position: { x: 0, y: 0 } }]));
-            const adjacencyList = new Map(); // sourceId -> [targetId, ...]
-            const inDegree = new Map(); // nodeId -> count of incoming edges
+            const adjacencyList = new Map();
+            const inDegree = new Map();
             
             // Initialize maps
             nodes.forEach(node => {
@@ -373,15 +520,22 @@ function Flow() {
             const HORIZONTAL_SPACING = 280;
             const VERTICAL_SPACING = 120;
             
-            // Position nodes with proper left-to-right flow
+            // Calculate total height for centering
+            const maxColumnHeight = Math.max(...columns.map(col => col.length));
+            const totalHeight = maxColumnHeight * VERTICAL_SPACING;
+            
+            // Position nodes with proper left-to-right flow and vertical centering
             columns.forEach((columnNodes, colIndex) => {
-                // Sort nodes in each column alphabetically for consistency
                 columnNodes.sort((a, b) => a.id.localeCompare(b.id));
+                
+                // Calculate vertical offset to center the column
+                const columnHeight = columnNodes.length * VERTICAL_SPACING;
+                const verticalOffset = (totalHeight - columnHeight) / 2;
                 
                 columnNodes.forEach((node, rowIndex) => {
                     node.position = {
                         x: colIndex * HORIZONTAL_SPACING,
-                        y: rowIndex * VERTICAL_SPACING
+                        y: verticalOffset + (rowIndex * VERTICAL_SPACING)
                     };
                 });
             });
@@ -391,7 +545,7 @@ function Flow() {
 
         const nodeTypes = { customNode: CustomNode };
         const defaultEdgeOptions = {
-            type: 'default', // Changed to 'default' for Bezier curves
+            type: 'default',
             className: 'n8n-edge highlighted',
             markerEnd: { type: MarkerType.ArrowClosed }
         };
@@ -401,18 +555,162 @@ function Flow() {
         pathNodes = getCompactLayout(pathNodes, pathEdges);
 
         function PathView() {
+            const [selectedNodes, setSelectedNodes] = React.useState(new Set());
+            const [isSelecting, setIsSelecting] = React.useState(false);
+            const [selectionBox, setSelectionBox] = React.useState(null);
+            const [selectionStart, setSelectionStart] = React.useState(null);
+
+            const onNodeClick = useCallback((event, node) => {
+                if (event.ctrlKey || event.metaKey) {
+                    setSelectedNodes(prev => {
+                        const newSet = new Set(prev);
+                        if (newSet.has(node.id)) {
+                            newSet.delete(node.id);
+                        } else {
+                            newSet.add(node.id);
+                        }
+                        return newSet;
+                    });
+                }
+            }, []);
+
+            const onPaneClick = useCallback((event) => {
+                if (!event.ctrlKey && !event.metaKey) {
+                    setSelectedNodes(new Set());
+                }
+            }, []);
+
+            const onSelectionStart = useCallback((event) => {
+                if ((event.ctrlKey || event.metaKey) && event.target.classList.contains('react-flow__pane')) {
+                    event.preventDefault();
+                    const rootElement = document.getElementById('root');
+                    if (!rootElement) return;
+                    
+                    const rect = rootElement.getBoundingClientRect();
+                    const startX = event.clientX - rect.left;
+                    const startY = event.clientY - rect.top;
+                    
+                    setIsSelecting(true);
+                    setSelectionStart({ x: startX, y: startY });
+                    setSelectionBox({ x: startX, y: startY, width: 0, height: 0 });
+                }
+            }, []);
+
+            const onSelectionDrag = useCallback((event) => {
+                if (isSelecting && selectionStart) {
+                    event.preventDefault();
+                    const rootElement = document.getElementById('root');
+                    if (!rootElement) return;
+                    
+                    const rect = rootElement.getBoundingClientRect();
+                    const currentX = event.clientX - rect.left;
+                    const currentY = event.clientY - rect.top;
+                    
+                    const x = Math.min(selectionStart.x, currentX);
+                    const y = Math.min(selectionStart.y, currentY);
+                    const width = Math.abs(currentX - selectionStart.x);
+                    const height = Math.abs(currentY - selectionStart.y);
+                    
+                    setSelectionBox({ x, y, width, height });
+                }
+            }, [isSelecting, selectionStart]);
+
+            const onSelectionEnd = useCallback(() => {
+                if (isSelecting && selectionBox && selectionBox.width > 5 && selectionBox.height > 5) {
+                    const selectedNodeIds = new Set();
+                    const rootElement = document.getElementById('root');
+                    
+                    if (rootElement) {
+                        const rootRect = rootElement.getBoundingClientRect();
+                        
+                        pathNodes.forEach(node => {
+                            const nodeElement = document.querySelector(\`[data-id="\${node.id.replace(/"/g, '\\\\"')}"]\`);
+                            if (nodeElement) {
+                                const nodeRect = nodeElement.getBoundingClientRect();
+                                const nodeX = nodeRect.left - rootRect.left;
+                                const nodeY = nodeRect.top - rootRect.top;
+                                const nodeWidth = nodeRect.width;
+                                const nodeHeight = nodeRect.height;
+                                
+                                const nodeRight = nodeX + nodeWidth;
+                                const nodeBottom = nodeY + nodeHeight;
+                                const selectionRight = selectionBox.x + selectionBox.width;
+                                const selectionBottom = selectionBox.y + selectionBox.height;
+                                
+                                if (nodeX < selectionRight &&
+                                    nodeRight > selectionBox.x &&
+                                    nodeY < selectionBottom &&
+                                    nodeBottom > selectionBox.y) {
+                                    selectedNodeIds.add(node.id);
+                                }
+                            }
+                        });
+                        
+                        setSelectedNodes(prev => {
+                            const newSet = new Set(prev);
+                            selectedNodeIds.forEach(id => newSet.add(id));
+                            return newSet;
+                        });
+                    }
+                }
+                
+                setIsSelecting(false);
+                setSelectionBox(null);
+                setSelectionStart(null);
+            }, [isSelecting, selectionBox]);
+
+            React.useEffect(() => {
+                const handleMouseMove = (event) => {
+                    if (isSelecting) {
+                        onSelectionDrag(event);
+                    }
+                };
+
+                const handleMouseUp = (event) => {
+                    if (isSelecting) {
+                        onSelectionEnd();
+                    }
+                };
+
+                if (isSelecting) {
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
+                }
+
+                return () => {
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                };
+            }, [isSelecting, onSelectionDrag, onSelectionEnd]);
+
             return React.createElement(
                 'div',
-                { style: { width: '100%', height: '100%', position: 'relative' } },
+                { 
+                    style: { width: '100%', height: '100%', position: 'relative' },
+                    onMouseDown: onSelectionStart
+                },
+                selectionBox && React.createElement('div', {
+                    className: 'selection-box',
+                    style: {
+                        left: selectionBox.x + 'px',
+                        top: selectionBox.y + 'px',
+                        width: selectionBox.width + 'px',
+                        height: selectionBox.height + 'px'
+                    }
+                }),
                 React.createElement(
                     ReactFlow,
                     {
-                        // CHANGED: make nodes draggable by using uncontrolled props
-                        defaultNodes: pathNodes,
-                        defaultEdges: pathEdges,
+                        nodes: pathNodes.map(node => ({
+                            ...node,
+                            selected: selectedNodes.has(node.id)
+                        })),
+                        edges: pathEdges,
                         nodeTypes: nodeTypes,
+                        onNodeClick: onNodeClick,
+                        onPaneClick: onPaneClick,
                         fitView: true,
-                        fitViewOptions: { padding: 0.05, maxZoom: 1.5, minZoom: 0.3 },
+                        fitViewOptions: { padding: 0.15, maxZoom: 1.0, minZoom: 0.3 },
                         defaultEdgeOptions: defaultEdgeOptions,
                         nodesDraggable: true,
                         nodesConnectable: false,
@@ -546,7 +844,20 @@ function Flow() {
 
     return React.createElement(
         'div',
-        { style: { width: '100%', height: '100%', position: 'relative' } },
+        { 
+            style: { width: '100%', height: '100%', position: 'relative' },
+            onMouseDown: onSelectionStart
+        },
+        selectionBox && React.createElement('div', {
+            className: 'selection-box',
+            style: {
+                position: 'absolute',
+                left: selectionBox.x + 'px',
+                top: selectionBox.y + 'px',
+                width: selectionBox.width + 'px',
+                height: selectionBox.height + 'px'
+            }
+        }),
         currentlyClickedNode && React.createElement(
             'div',
             { className: 'path-controls' },
@@ -612,7 +923,10 @@ function Flow() {
         React.createElement(
             ReactFlow,
             {
-                nodes: nodes,
+                nodes: nodes.map(node => ({
+                    ...node,
+                    selected: selectedNodes.has(node.id)
+                })),
                 edges: edges,
                 onNodesChange: onNodesChange,
                 onEdgesChange: onEdgesChange,
@@ -624,7 +938,6 @@ function Flow() {
                 defaultEdgeOptions: defaultEdgeOptions,
                 nodesDraggable: true,
                 nodesConnectable: false,
-                // Disable virtualization to prevent edge flicker on pan/zoom
                 onlyRenderVisibleElements: false,
                 proOptions: { hideAttribution: true },
                 minZoom: 0.001
