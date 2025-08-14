@@ -11,15 +11,11 @@ import ReactFlow, {
 } from 'reactflow';
 
 // Memoized CustomNode component for performance
-const CustomNode = React.memo(({ data }) => {
+const CustomNode = React.memo(({ data, selected }) => {
     return React.createElement(
         'div',
-        {
-            className: 'custom-node',
-            style: data.highlighted ? {
-                border: '2px solid #ffd700',
-                boxShadow: '0 0 10px rgba(255, 215, 0, 0.5)'
-            } : {}
+        { 
+            className: `custom-node ${selected ? 'selected' : ''}`
         },
         React.createElement(Handle, {
             type: 'target',
@@ -51,6 +47,10 @@ function Flow() {
     const [isLoading, setIsLoading] = useState(true);
     const [currentlyClickedNode, setCurrentlyClickedNode] = useState(null);
     const [highlightedPath, setHighlightedPath] = useState({ nodes: new Set(), edges: new Set() });
+    const [selectedNodes, setSelectedNodes] = useState(new Set());
+    const [isSelecting, setIsSelecting] = useState(false);
+    const [selectionBox, setSelectionBox] = useState(null);
+    const [selectionStart, setSelectionStart] = useState(null);
 
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
@@ -118,6 +118,23 @@ function Flow() {
     }, []);
 
     const onNodeClick = useCallback((event, node) => {
+        if (event.ctrlKey || event.metaKey) {
+            // Multi-select mode
+            setSelectedNodes(prev => {
+                const newSet = new Set(prev);
+                if (newSet.has(node.id)) {
+                    newSet.delete(node.id);
+                } else {
+                    newSet.add(node.id);
+                }
+                return newSet;
+            });
+            return;
+        }
+
+        // Clear any selections when clicking normally
+        setSelectedNodes(new Set());
+
         if (currentlyClickedNode === node.id) {
             clearHighlights();
             return;
@@ -168,308 +185,134 @@ function Flow() {
     const clearHighlights = useCallback(() => {
         setCurrentlyClickedNode(null);
         setHighlightedPath({ nodes: new Set(), edges: new Set() });
+        setSelectedNodes(new Set());
         setNodes(nds => nds.map(n => n.data.highlighted ? { ...n, data: { ...n.data, highlighted: false } } : n));
         setEdges(eds => eds.map(e => (e.className || '').includes('highlighted') ? { ...e, className: 'n8n-edge' } : e));
     }, []);
 
-    const onPaneClick = useCallback(() => {
+    const onPaneClick = useCallback((event) => {
         if (currentlyClickedNode) {
             clearHighlights();
         }
+        if (!event.ctrlKey && !event.metaKey) {
+            setSelectedNodes(new Set());
+        }
     }, [currentlyClickedNode, clearHighlights]);
 
-    const openPathInNewWindow = useCallback(() => {
+    const onSelectionStart = useCallback((event) => {
+        if ((event.ctrlKey || event.metaKey) && event.target.classList.contains('react-flow__pane')) {
+            event.preventDefault();
+            const root = document.getElementById('root');
+            if (!root) return;
+            const rect = root.getBoundingClientRect();
+            const startX = event.clientX - rect.left;
+            const startY = event.clientY - rect.top;
+            setIsSelecting(true);
+            setSelectionStart({ x: startX, y: startY });
+            setSelectionBox({ x: startX, y: startY, width: 0, height: 0 });
+        }
+    }, []);
+
+    const computeDragSelection = useCallback((box, baseSet) => {
+        const root = document.getElementById('root');
+        if (!root) return baseSet;
+        const rootRect = root.getBoundingClientRect();
+        const next = new Set(baseSet);
+        nodes.forEach((n) => {
+            const el = document.querySelector(`[data-id="${n.id.replace(/"/g, '\\"')}"]`);
+            if (!el) return;
+            const r = el.getBoundingClientRect();
+            const x = r.left - rootRect.left;
+            const y = r.top - rootRect.top;
+            const w = r.width;
+            const h = r.height;
+            if (
+                x < box.x + box.width &&
+                x + w > box.x &&
+                y < box.y + box.height &&
+                y + h > box.y
+            ) {
+                next.add(n.id);
+            }
+        });
+        return next;
+    }, [nodes]);
+
+    const onSelectionDrag = useCallback((event) => {
+        if (!isSelecting || !selectionStart) return;
+        event.preventDefault();
+        const root = document.getElementById('root');
+        if (!root) return;
+        const rect = root.getBoundingClientRect();
+        const curX = event.clientX - rect.left;
+        const curY = event.clientY - rect.top;
+        const x = Math.min(selectionStart.x, curX);
+        const y = Math.min(selectionStart.y, curY);
+        const width = Math.abs(curX - selectionStart.x);
+        const height = Math.abs(curY - selectionStart.y);
+        const box = { x, y, width, height };
+        setSelectionBox(box);
+        if (width > 4 && height > 4) {
+            // Live update additive selection
+            setSelectedNodes((prev) => computeDragSelection(box, prev));
+        }
+    }, [isSelecting, selectionStart, computeDragSelection]);
+
+    const finishSelection = useCallback(() => {
+        setIsSelecting(false);
+        setSelectionBox(null);
+        setSelectionStart(null);
+    }, []);
+
+    // Handle mouse events on document to capture drags outside the pane
+    useEffect(() => {
+        const mm = (e) => {
+            if (isSelecting) onSelectionDrag(e);
+        };
+        const mu = () => {
+            if (isSelecting) finishSelection();
+        };
+        document.addEventListener('mousemove', mm);
+        document.addEventListener('mouseup', mu);
+        return () => {
+            document.removeEventListener('mousemove', mm);
+            document.removeEventListener('mouseup', mu);
+        };
+    }, [isSelecting, onSelectionDrag, finishSelection]);
+
+     const openPathInNewWindow = useCallback(async () => {
         if (highlightedPath.nodes.size === 0) return;
 
         const filteredNodes = nodes.filter(node => highlightedPath.nodes.has(node.id));
         const filteredEdges = edges.filter(edge => highlightedPath.edges.has(edge.id));
 
-        // Create HTML content for the new window with compact layout
-        const htmlContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CodeMapper | Path View</title>
-    <link rel="stylesheet" href="./styles.css" />
-    <link rel="stylesheet" href="https://esm.sh/reactflow@11.11.1/dist/style.css" />
-    <style>
-        /* Ultra-compact layout styles for path view */
-        .react-flow__node {
-            min-width: 150px !important;
-            max-width: 200px !important;
-            font-size: 10px !important;
-            min-height: 60px !important;
-        }
-        .custom-node {
-            min-height: 60px !important;
-            border-radius: 4px !important;
-        }
-        .node-header {
-            padding: 2px 6px !important;
-            font-size: 8px !important;
-            font-weight: bold !important;
-            line-height: 1.2 !important;
-        }
-        .node-body {
-            padding: 4px 6px !important;
-        }
-        .node-body .function-name {
-            font-size: 10px !important;
-            font-weight: 600 !important;
-            margin-bottom: 2px !important;
-            line-height: 1.2 !important;
-        }
-        .node-body .file-path {
-            font-size: 8px !important;
-            margin-top: 2px !important;
-            line-height: 1.1 !important;
-            opacity: 0.8 !important;
-        }
-        /* Compact edge styling for Bezier curves */
-        .react-flow__edge.n8n-edge .react-flow__edge-path {
-            stroke-width: 1px !important; /* Thin lines for path view */
-        }
-        .react-flow__edge.n8n-edge.highlighted .react-flow__edge-path {
-            stroke-width: 2px !important; /* Slightly thicker for highlighted */
-        }
-        .export-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 10;
-            background-color: #28a745;
-            border: 1px solid #28a745;
-            color: #ffffff;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        .export-button:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-    </style>
-    <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
-    <script type="importmap">
-    {
-        "imports": {
-            "react": "https://esm.sh/react@18.2.0",
-            "react-dom": "https://esm.sh/react-dom@18.2.0",
-            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-            "reactflow": "https://esm.sh/reactflow@11.11.1?deps=react@18.2.0,react-dom@18.2.0"
-        }
-    }
-    </script>
-</head>
-<body>
-    <div id="root" style="width:100vw;height:100vh;position:relative;"></div>
-    <button class="export-button" id="exportBtn">📷 Export PNG</button>
-    <script type="module">
-        import React from 'react';
-        import { createRoot } from 'react-dom/client';
-        import ReactFlow, { Controls, Background, Position, Handle, MarkerType } from 'reactflow';
-        import { toPng } from 'https://esm.sh/html-to-image@1.11.11';
-
-        const CustomNode = React.memo(({ data }) => {
-            return React.createElement(
-                'div',
-                { className: 'custom-node' },
-                React.createElement(Handle, {
-                    type: 'target',
-                    position: Position.Left,
-                    isConnectable: false,
-                    style: { background: '#555' }
-                }),
-                React.createElement('div', { className: 'node-header' }, data.package),
-                React.createElement(
-                    'div',
-                    { className: 'node-body' },
-                    React.createElement('div', { className: 'function-name' }, data.name),
-                    React.createElement('div', { className: 'file-path' }, data.filePath)
-                ),
-                React.createElement(Handle, {
-                    type: 'source',
-                    position: Position.Right,
-                    isConnectable: false,
-                    style: { background: '#555' }
-                })
+        try {
+            // Load the HTML template
+            const response = await fetch('/path-view.html');
+            if (!response.ok) {
+                throw new Error(`Failed to load template: ${response.status}`);
+            }
+            let htmlContent = await response.text();
+            
+            // Replace placeholders with actual data
+            htmlContent = htmlContent.replace(
+                'PLACEHOLDER_NODES', 
+                JSON.stringify(filteredNodes)
             );
-        });
-
-        function getCompactLayout(nodes, edges) {
-            // Create a fresh copy of nodes with reset positions
-            const nodeMap = new Map(nodes.map(n => [n.id, { ...n, position: { x: 0, y: 0 } }]));
-            const edgeMap = new Map();
-            const childrenMap = new Map();
-            const parentMap = new Map();
-            
-            // Initialize maps
-            nodes.forEach(node => {
-                childrenMap.set(node.id, []);
-                parentMap.set(node.id, []);
-            });
-            
-            // Build parent-child relationships
-            edges.forEach(edge => {
-                edgeMap.set(edge.id, edge);
-                childrenMap.get(edge.source).push(edge.target);
-                parentMap.get(edge.target).push(edge.source);
-            });
-            
-            // Find all root nodes (no incoming edges)
-            const roots = nodes.filter(node => parentMap.get(node.id).length === 0);
-            
-            if (roots.length === 0) {
-                // Handle circular dependencies - just pick the first node
-                roots.push(nodes[0]);
-            }
-            
-            // Ultra-compact spacing
-            const HORIZONTAL_SPACING = 280;  // Increased from 180
-            const VERTICAL_SPACING = 120;    // Increased from 80
-            
-            let currentColumn = 0;
-            const visited = new Set();
-            const columnAssignments = new Map();
-            
-            // BFS traversal for column assignment
-            function assignColumns() {
-                const queue = [...roots.map(root => ({ nodeId: root.id, column: 0 }))];
-                
-                while (queue.length > 0) {
-                    const { nodeId, column } = queue.shift();
-                    
-                    if (visited.has(nodeId)) continue;
-                    visited.add(nodeId);
-                    
-                    columnAssignments.set(nodeId, column);
-                    currentColumn = Math.max(currentColumn, column);
-                    
-                    // Add children to next column
-                    const children = childrenMap.get(nodeId) || [];
-                    children.forEach(childId => {
-                        if (!visited.has(childId)) {
-                            queue.push({ nodeId: childId, column: column + 1 });
-                        }
-                    });
-                }
-            }
-            
-            assignColumns();
-            
-            // Group nodes by column
-            const columns = new Map();
-            for (let i = 0; i <= currentColumn; i++) {
-                columns.set(i, []);
-            }
-            
-            columnAssignments.forEach((column, nodeId) => {
-                columns.get(column).push(nodeMap.get(nodeId));
-            });
-            
-            // Position nodes with ultra-compact spacing
-            columns.forEach((columnNodes, columnIndex) => {
-                // Sort nodes in each column alphabetically for consistency
-                columnNodes.sort((a, b) => a.id.localeCompare(b.id));
-                
-                columnNodes.forEach((node, rowIndex) => {
-                    node.position = {
-                        x: columnIndex * HORIZONTAL_SPACING,
-                        y: rowIndex * VERTICAL_SPACING
-                    };
-                });
-            });
-            
-            return Array.from(nodeMap.values());
-        }
-
-        const nodeTypes = { customNode: CustomNode };
-        const defaultEdgeOptions = {
-            type: 'default', // Changed to 'default' for Bezier curves
-            className: 'n8n-edge highlighted',
-            markerEnd: { type: MarkerType.ArrowClosed }
-        };
-
-        let pathNodes = ${JSON.stringify(filteredNodes)};
-        const pathEdges = ${JSON.stringify(filteredEdges)};
-        pathNodes = getCompactLayout(pathNodes, pathEdges);
-
-        function PathView() {
-            return React.createElement(
-                'div',
-                { style: { width: '100%', height: '100%', position: 'relative' } },
-                React.createElement(
-                    ReactFlow,
-                    {
-                        // CHANGED: make nodes draggable by using uncontrolled props
-                        defaultNodes: pathNodes,
-                        defaultEdges: pathEdges,
-                        nodeTypes: nodeTypes,
-                        fitView: true,
-                        fitViewOptions: { padding: 0.05, maxZoom: 1.5, minZoom: 0.3 },
-                        defaultEdgeOptions: defaultEdgeOptions,
-                        nodesDraggable: true,
-                        nodesConnectable: false,
-                        proOptions: { hideAttribution: true },
-                        minZoom: 0.1,
-                        maxZoom: 3
-                    },
-                    React.createElement(Controls),
-                    React.createElement(Background, { variant: 'dots', gap: 12, size: 1 })
-                )
+            htmlContent = htmlContent.replace(
+                'PLACEHOLDER_EDGES', 
+                JSON.stringify(filteredEdges)
             );
-        }
 
-        const root = createRoot(document.getElementById('root'));
-        root.render(React.createElement(React.StrictMode, null, React.createElement(PathView)));
-
-        // Enhanced export button handler with improved quality
-        document.getElementById('exportBtn').onclick = function() {
-            const viewport = document.querySelector('.react-flow__viewport');
-            if (!viewport) return;
-            
-            // Calculate dimensions for high DPI
-            const pixelRatio = window.devicePixelRatio || 2;
-            const width = viewport.scrollWidth * pixelRatio;
-            const height = viewport.scrollHeight * pixelRatio;
-            
-            toPng(viewport, {
-                backgroundColor: '#1a192b',
-                width: width,
-                height: height,
-                pixelRatio: pixelRatio,
-                quality: 1.0,
-                canvasWidth: width,
-                canvasHeight: height,
-                style: {
-                    transform: 'scale(' + pixelRatio + ')',
-                    transformOrigin: 'top left'
-                }
-            }).then((dataUrl) => {
-                const link = document.createElement('a');
-                link.download = 'codemapper-path-hq.png';
-                link.href = dataUrl;
-                link.click();
-            }).catch(err => {
-                console.error('Failed to export PNG:', err);
-            });
-        };
-    </script>
-</body>
-</html>`;
-
-        const newWindow = window.open('', '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
-        if (newWindow) {
-            newWindow.document.write(htmlContent);
-            newWindow.document.close();
+            const newWindow = window.open('', '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
+            if (newWindow) {
+                newWindow.document.write(htmlContent);
+                newWindow.document.close();
+            }
+        } catch (error) {
+            console.error('Failed to open path in new window:', error);
+            // Fallback: show error message
+            alert('Failed to load path view template. Please check that path-view.html is available.');
         }
     }, [nodes, edges, highlightedPath]);
 
@@ -548,7 +391,19 @@ function Flow() {
 
     return React.createElement(
         'div',
-        { style: { width: '100%', height: '100%', position: 'relative' } },
+        { 
+            style: { width: '100%', height: '100%', position: 'relative' },
+            onMouseDown: onSelectionStart
+        },
+        selectionBox && React.createElement('div', {
+            className: 'selection-box',
+            style: {
+                left: selectionBox.x + 'px',
+                top: selectionBox.y + 'px',
+                width: selectionBox.width + 'px',
+                height: selectionBox.height + 'px'
+            }
+        }),
         currentlyClickedNode && React.createElement(
             'div',
             { className: 'path-controls' },
@@ -614,7 +469,10 @@ function Flow() {
         React.createElement(
             ReactFlow,
             {
-                nodes: nodes,
+                nodes: nodes.map(node => ({
+                    ...node,
+                    selected: selectedNodes.has(node.id)
+                })),
                 edges: edges,
                 onNodesChange: onNodesChange,
                 onEdgesChange: onEdgesChange,
@@ -626,7 +484,8 @@ function Flow() {
                 defaultEdgeOptions: defaultEdgeOptions,
                 nodesDraggable: true,
                 nodesConnectable: false,
-                // Disable virtualization to prevent edge flicker on pan/zoom
+                elementsSelectable: false,
+                selectNodesOnDrag: false,
                 onlyRenderVisibleElements: false,
                 proOptions: { hideAttribution: true },
                 minZoom: 0.001

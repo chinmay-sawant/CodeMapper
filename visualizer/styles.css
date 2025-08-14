@@ -218,3 +218,32 @@ body {
   font-size: 18px;
   color: #b0b0b0;
 }
+
+/* Selection box for multi-select */
+.selection-box {
+  position: absolute;
+  border: 2px dashed #4a9eff;
+  background-color: rgba(74, 158, 255, 0.1);
+  pointer-events: none;
+  z-index: 1000;
+  border-radius: 4px;
+}
+
+/* Selected node styling */
+.react-flow__node.selected {
+  box-shadow: 0 0 0 2px #4a9eff !important;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+.react-flow__node.selected .custom-node {
+  border-color: #4a9eff !important;
+}
+
+/* Prevent text selection during drag selection */
+.react-flow__pane {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

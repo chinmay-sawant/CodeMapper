@@ -129,18 +129,39 @@ const getLayoutedElements = (mappings) => {
         columns[depth] = cyclicNodes;
     }
 
-
-    // --- Step 4: Assign Positions Based on Columns ---
+    // --- Step 4: Assign Positions Based on Columns with Vertical Centering ---
     const x_gap = 350;
     const y_gap = 180;
 
+    // Filter out empty columns and calculate total height for centering
+    const nonEmptyColumns = columns.filter(col => col && col.length > 0);
+    if (nonEmptyColumns.length === 0) {
+        // Handle case where no columns exist
+        const initialNodes = Array.from(nodes.values());
+        const initialEdges = Array.from(edges).map(edgeId => {
+            const [source, target] = edgeId.split('->');
+            return { id: edgeId, source, target };
+        });
+        return { initialNodes, initialEdges };
+    }
+
+    const maxColumnHeight = Math.max(...nonEmptyColumns.map(col => col.length));
+    const totalHeight = maxColumnHeight * y_gap;
+
     columns.forEach((col, colIndex) => {
+        if (!col || col.length === 0) return; // Skip empty columns
+        
         // Sort nodes in a column alphabetically for a stable layout
         col.sort((a, b) => a.id.localeCompare(b.id)); 
+        
+        // Calculate vertical offset to center the column
+        const columnHeight = col.length * y_gap;
+        const verticalOffset = Math.max(0, (totalHeight - columnHeight) / 2);
+        
         col.forEach((node, nodeIndex) => {
             node.position = {
                 x: colIndex * x_gap,
-                y: nodeIndex * y_gap
+                y: verticalOffset + (nodeIndex * y_gap)
             };
         });
     });
@@ -150,6 +171,23 @@ const getLayoutedElements = (mappings) => {
         const [source, target] = edgeId.split('->');
         return { id: edgeId, source, target };
     });
+
+    // --- Step 5: Re-center entire graph around (0,0) for consistent viewport alignment ---
+    if (initialNodes.length > 0) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const n of initialNodes) {
+            minX = Math.min(minX, n.position.x);
+            minY = Math.min(minY, n.position.y);
+            maxX = Math.max(maxX, n.position.x);
+            maxY = Math.max(maxY, n.position.y);
+        }
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        for (const n of initialNodes) {
+            n.position.x -= centerX;
+            n.position.y -= centerY;
+        }
+    }
 
     return { initialNodes, initialEdges };
 };
