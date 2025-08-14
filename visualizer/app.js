@@ -307,82 +307,80 @@ function Flow() {
         function getCompactLayout(nodes, edges) {
             // Create a fresh copy of nodes with reset positions
             const nodeMap = new Map(nodes.map(n => [n.id, { ...n, position: { x: 0, y: 0 } }]));
-            const edgeMap = new Map();
-            const childrenMap = new Map();
-            const parentMap = new Map();
+            const adjacencyList = new Map(); // sourceId -> [targetId, ...]
+            const inDegree = new Map(); // nodeId -> count of incoming edges
             
             // Initialize maps
             nodes.forEach(node => {
-                childrenMap.set(node.id, []);
-                parentMap.set(node.id, []);
+                adjacencyList.set(node.id, []);
+                inDegree.set(node.id, 0);
             });
             
-            // Build parent-child relationships
+            // Build adjacency list and in-degree count
             edges.forEach(edge => {
-                edgeMap.set(edge.id, edge);
-                childrenMap.get(edge.source).push(edge.target);
-                parentMap.get(edge.target).push(edge.source);
+                adjacencyList.get(edge.source).push(edge.target);
+                inDegree.set(edge.target, inDegree.get(edge.target) + 1);
             });
             
-            // Find all root nodes (no incoming edges)
-            const roots = nodes.filter(node => parentMap.get(node.id).length === 0);
+            // Topological sort using Kahn's algorithm
+            const columns = [];
+            let queue = [];
             
-            if (roots.length === 0) {
-                // Handle circular dependencies - just pick the first node
-                roots.push(nodes[0]);
+            // Find all nodes with no incoming edges (first column)
+            nodes.forEach(node => {
+                if (inDegree.get(node.id) === 0) {
+                    queue.push(node.id);
+                }
+            });
+            
+            let columnIndex = 0;
+            while (queue.length > 0) {
+                const currentLevel = [...queue];
+                columns[columnIndex] = [];
+                queue = [];
+                
+                currentLevel.forEach(nodeId => {
+                    const node = nodeMap.get(nodeId);
+                    columns[columnIndex].push(node);
+                    
+                    // Process neighbors
+                    const neighbors = adjacencyList.get(nodeId) || [];
+                    neighbors.forEach(neighborId => {
+                        const newInDegree = inDegree.get(neighborId) - 1;
+                        inDegree.set(neighborId, newInDegree);
+                        
+                        if (newInDegree === 0) {
+                            queue.push(neighborId);
+                        }
+                    });
+                });
+                
+                columnIndex++;
+            }
+            
+            // Handle any remaining nodes (cycles or isolated nodes)
+            const processedNodes = new Set();
+            columns.forEach(column => {
+                column.forEach(node => processedNodes.add(node.id));
+            });
+            
+            const remainingNodes = nodes.filter(node => !processedNodes.has(node.id));
+            if (remainingNodes.length > 0) {
+                columns[columnIndex] = remainingNodes.map(n => nodeMap.get(n.id));
             }
             
             // Ultra-compact spacing
-            const HORIZONTAL_SPACING = 280;  // Increased from 180
-            const VERTICAL_SPACING = 120;    // Increased from 80
+            const HORIZONTAL_SPACING = 280;
+            const VERTICAL_SPACING = 120;
             
-            let currentColumn = 0;
-            const visited = new Set();
-            const columnAssignments = new Map();
-            
-            // BFS traversal for column assignment
-            function assignColumns() {
-                const queue = [...roots.map(root => ({ nodeId: root.id, column: 0 }))];
-                
-                while (queue.length > 0) {
-                    const { nodeId, column } = queue.shift();
-                    
-                    if (visited.has(nodeId)) continue;
-                    visited.add(nodeId);
-                    
-                    columnAssignments.set(nodeId, column);
-                    currentColumn = Math.max(currentColumn, column);
-                    
-                    // Add children to next column
-                    const children = childrenMap.get(nodeId) || [];
-                    children.forEach(childId => {
-                        if (!visited.has(childId)) {
-                            queue.push({ nodeId: childId, column: column + 1 });
-                        }
-                    });
-                }
-            }
-            
-            assignColumns();
-            
-            // Group nodes by column
-            const columns = new Map();
-            for (let i = 0; i <= currentColumn; i++) {
-                columns.set(i, []);
-            }
-            
-            columnAssignments.forEach((column, nodeId) => {
-                columns.get(column).push(nodeMap.get(nodeId));
-            });
-            
-            // Position nodes with ultra-compact spacing
-            columns.forEach((columnNodes, columnIndex) => {
+            // Position nodes with proper left-to-right flow
+            columns.forEach((columnNodes, colIndex) => {
                 // Sort nodes in each column alphabetically for consistency
                 columnNodes.sort((a, b) => a.id.localeCompare(b.id));
                 
                 columnNodes.forEach((node, rowIndex) => {
                     node.position = {
-                        x: columnIndex * HORIZONTAL_SPACING,
+                        x: colIndex * HORIZONTAL_SPACING,
                         y: rowIndex * VERTICAL_SPACING
                     };
                 });
