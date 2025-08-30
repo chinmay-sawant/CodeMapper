@@ -18,7 +18,10 @@ Analyzing over **40+ repositories** for a recent project was extremely time-cons
 
 - **Automatic Go code analysis** 🧑‍💻
 - **Dependency mapping** between functions and methods 🔗
-- **Interactive visualization** in your browser 🌐
+- **Two visualization modes**:
+  - **Flow View**: Traditional ReactFlow-based visualization with n8n.io-inspired interface 🌊
+  - **Graph View**: Obsidian-style graph visualization with circular nodes and expandable neighbors 🌐
+- **Interactive exploration** in your browser 🌐
 - **Easy to use**: just point to your repo and run!
 
 ---
@@ -32,7 +35,9 @@ Analyzing over **40+ repositories** for a recent project was extremely time-cons
    Outputs a JSON file mapping all relationships.
 
 3. **Visualizes the map**:  
-   Launches a web server with a beautiful, interactive graph UI.
+   Launches a web server with two beautiful, interactive visualization modes:
+   - **Flow View**: Traditional directed graph with rectangular nodes
+   - **Graph View**: Obsidian-style circular node graph with expandable neighbors
 
 ---
 
@@ -71,6 +76,30 @@ go run main.go -path "./ollama" -gopath "C:\Users\acer\go\pkg\mod" -analyze-deps
 # 2. Open your browser and visit
 http://localhost:8080
 ```
+
+### Visualization Modes
+
+**Flow View** (Default)
+- Traditional directed graph layout
+- Rectangular nodes showing function details
+- Path highlighting and backtracking
+- Export functionality
+
+**Graph View** (Obsidian-style) 🌐
+- **Circular nodes** with package-based colors
+- **Neighbor count indicators** (N) for hidden connections - click to expand
+- **Interactive expansion**: Click nodes to expand/collapse neighbors
+- **Real-time search** with live filtering
+- **Node details panel** with dependencies and callers
+- **Smooth zoom and pan** controls with mouse/touch
+- **Keyboard shortcuts**:
+  - `Ctrl+F`: Focus search
+  - `Ctrl+C`: Center graph
+  - `Ctrl+R`: Reset view
+  - `Space`: Expand/collapse selected node
+  - `Esc`: Clear selection
+- **Visual feedback**: Hover effects, animations, and highlighted connections
+- **Context menu**: Right-click for additional actions
 ## Command Line Arguments Documentation
 
 This application accepts the following command line arguments:
@@ -90,19 +119,24 @@ This application accepts the following command line arguments:
 - `codemap.json` - Generated dependency map
 
 ---
-## Screenshot 🖼️
+## Screenshots 🖼️
 
-### Sample Screenshot
-![Sample Screenshot](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image1.png)
+### Flow View (Traditional)
+![Flow View Screenshot](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image1.png)
+- Rectangular nodes with detailed information
+- Traditional directed graph layout
+- Path highlighting and backtracking
 
-### Full Screenshot
-![Full Screenshot](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image2.png)
-### Visual Backtracking
+### Graph View (Obsidian-style) 
+![Graph View Screenshot](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image2.png)
+- Circular nodes with package-based colors
+- Expandable neighbor indicators
+- Interactive exploration interface
+
+### Additional Features
 ![Visual Backtracking](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image3.png)
-### Path View  
 ![Path View](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image4.png)
-### Front Tracking to Find References
-![Front Tracking to Find References](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image5.png)
+![Front Tracking](https://github.com/chinmay-sawant/CodeMapper/blob/master/screenshot/image5.png)
 
 ---
 ## Made with ❤️ in India

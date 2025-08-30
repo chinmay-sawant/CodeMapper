@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeMapper | Obsidian-Style Graph View</title>
+    <link rel="stylesheet" href="./graph-view.css" />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Controls Panel -->
+      <div id="controls-panel">
+        <div class="control-group">
+          <button id="toggle-view-btn" class="control-btn primary">
+            Switch to Flow View
+          </button>
+        </div>
+        <div class="control-group">
+          <label>Force Strength:</label>
+          <input type="range" id="force-strength" min="0.1" max="2" step="0.1" value="0.5">
+        </div>
+        <div class="control-group">
+          <label>Link Distance:</label>
+          <input type="range" id="link-distance" min="30" max="200" step="10" value="100">
+        </div>
+        <div class="control-group">
+          <button id="center-graph-btn" class="control-btn">Center Graph</button>
+        </div>
+        <div class="control-group">
+          <button id="reset-view-btn" class="control-btn">Reset View</button>
+        </div>
+        <div class="control-group keyboard-shortcuts">
+          <small style="color: #9ca3af; font-size: 10px;">
+            <strong>Shortcuts:</strong><br>
+            Ctrl+F: Search<br>
+            Ctrl+C: Center<br>
+            Ctrl+R: Reset<br>
+            Space: Expand/Collapse<br>
+            Esc: Clear selection
+          </small>
+        </div>
+      </div>
+
+      <!-- Graph Container -->
+      <div id="graph-container">
+        <svg id="graph-svg"></svg>
+      </div>
+
+      <!-- Node Details Panel -->
+      <div id="node-details-panel" class="hidden">
+        <div class="panel-header">
+          <h3 id="node-title">Node Details</h3>
+          <button id="close-panel-btn">&times;</button>
+        </div>
+        <div class="panel-content">
+          <div class="detail-section">
+            <h4>Function Information</h4>
+            <p><strong>Name:</strong> <span id="node-name"></span></p>
+            <p><strong>Package:</strong> <span id="node-package"></span></p>
+            <p><strong>File:</strong> <span id="node-file"></span></p>
+            <p><strong>Line:</strong> <span id="node-line"></span></p>
+          </div>
+          <div class="detail-section">
+            <h4>Dependencies</h4>
+            <div id="node-dependencies"></div>
+          </div>
+          <div class="detail-section">
+            <h4>Called By</h4>
+            <div id="node-callers"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Panel -->
+      <div id="search-panel">
+        <input type="text" id="search-input" placeholder="Search nodes..." />
+        <div id="search-results"></div>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div id="loading-indicator">
+        <div class="spinner"></div>
+        <p>Loading graph data...</p>
+      </div>
+    </div>
+
+    <script type="module" src="./graph-view.js"></script>
+  </body>
+</html>
