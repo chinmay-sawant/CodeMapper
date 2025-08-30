@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import ReactFlow, {
   Controls,
@@ -51,26 +51,34 @@ function Flow() {
     const [isSelecting, setIsSelecting] = useState(false);
     const [selectionBox, setSelectionBox] = useState(null);
     const [selectionStart, setSelectionStart] = useState(null);
+    // Cache of latest node bounding rects to avoid repeated layout reads during drag
+    const nodeRectsRef = useRef(new Map());
 
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
 
-    const findPathToRoot = useCallback((targetNodeId, currentEdges) => {
+    // Precompute incoming/outgoing edge maps when edges change to avoid rebuilding them on every click
+    const { incomingEdgesMap, outgoingEdgesMap } = useMemo(() => {
+        const incoming = new Map();
+        const outgoing = new Map();
+        edges.forEach(edge => {
+            if (!incoming.has(edge.target)) incoming.set(edge.target, []);
+            incoming.get(edge.target).push(edge);
+            if (!outgoing.has(edge.source)) outgoing.set(edge.source, []);
+            outgoing.get(edge.source).push(edge);
+        });
+        return { incomingEdgesMap: incoming, outgoingEdgesMap: outgoing };
+    }, [edges]);
+
+    const findPathToRoot = useCallback((targetNodeId) => {
         const pathNodes = new Set([targetNodeId]);
         const pathEdges = new Set();
         const queue = [targetNodeId];
+        let head = 0; // avoid queue.shift()
         const visited = new Set([targetNodeId]);
 
-        const incomingEdgesMap = new Map();
-        currentEdges.forEach(edge => {
-            if (!incomingEdgesMap.has(edge.target)) {
-                incomingEdgesMap.set(edge.target, []);
-            }
-            incomingEdgesMap.get(edge.target).push(edge);
-        });
-
-        while (queue.length > 0) {
-            const currentNodeId = queue.shift();
+        while (head < queue.length) {
+            const currentNodeId = queue[head++];
             const incoming = incomingEdgesMap.get(currentNodeId) || [];
             for (const edge of incoming) {
                 if (!visited.has(edge.source)) {
@@ -82,24 +90,17 @@ function Flow() {
             }
         }
         return { pathNodes, pathEdges };
-    }, []);
+    }, [incomingEdgesMap]);
 
-    const findForwardPath = useCallback((sourceNodeId, currentEdges) => {
+    const findForwardPath = useCallback((sourceNodeId) => {
         const pathNodes = new Set([sourceNodeId]);
         const pathEdges = new Set();
         const queue = [sourceNodeId];
+        let head = 0; // avoid queue.shift()
         const visited = new Set([sourceNodeId]);
 
-        const outgoingEdgesMap = new Map();
-        currentEdges.forEach(edge => {
-            if (!outgoingEdgesMap.has(edge.source)) {
-                outgoingEdgesMap.set(edge.source, []);
-            }
-            outgoingEdgesMap.get(edge.source).push(edge);
-        });
-
-        while (queue.length > 0) {
-            const currentNodeId = queue.shift();
+        while (head < queue.length) {
+            const currentNodeId = queue[head++];
             const outgoing = outgoingEdgesMap.get(currentNodeId) || [];
             for (const edge of outgoing) {
                 if (!visited.has(edge.target)) {
@@ -111,7 +112,7 @@ function Flow() {
             }
         }
         return { pathNodes, pathEdges };
-    }, []);
+    }, [outgoingEdgesMap]);
 
     const isRootNode = useCallback((nodeId, currentEdges) => {
         return !currentEdges.some(edge => edge.target === nodeId);
@@ -145,12 +146,12 @@ function Flow() {
         // Check if this is a root node (no incoming edges)
         if (isRootNode(node.id, edges)) {
             // For root nodes, highlight all forward connections
-            const result = findForwardPath(node.id, edges);
+            const result = findForwardPath(node.id);
             pathNodes = result.pathNodes;
             pathEdges = result.pathEdges;
         } else {
             // For non-root nodes, highlight backward path to root
-            const result = findPathToRoot(node.id, edges);
+            const result = findPathToRoot(node.id);
             pathNodes = result.pathNodes;
             pathEdges = result.pathEdges;
         }
@@ -219,13 +220,23 @@ function Flow() {
         const rootRect = root.getBoundingClientRect();
         const next = new Set(baseSet);
         nodes.forEach((n) => {
-            const el = document.querySelector(`[data-id="${n.id.replace(/"/g, '\\"')}"]`);
-            if (!el) return;
-            const r = el.getBoundingClientRect();
-            const x = r.left - rootRect.left;
-            const y = r.top - rootRect.top;
-            const w = r.width;
-            const h = r.height;
+            // Use cached rects when available to avoid repeated layout reads
+            const cached = nodeRectsRef.current.get(n.id);
+            let x, y, w, h;
+            if (cached) {
+                x = cached.left - rootRect.left;
+                y = cached.top - rootRect.top;
+                w = cached.width;
+                h = cached.height;
+            } else {
+                const el = document.querySelector(`[data-id="${n.id.replace(/\"/g, '\\\"')}"]`);
+                if (!el) return;
+                const r = el.getBoundingClientRect();
+                x = r.left - rootRect.left;
+                y = r.top - rootRect.top;
+                w = r.width;
+                h = r.height;
+            }
             if (
                 x < box.x + box.width &&
                 x + w > box.x &&
@@ -246,9 +257,26 @@ function Flow() {
         const rect = root.getBoundingClientRect();
         const curX = event.clientX - rect.left;
         const curY = event.clientY - rect.top;
-        const x = Math.min(selectionStart.x, curX);
+            setIsSelecting(true);
         const y = Math.min(selectionStart.y, curY);
         const width = Math.abs(curX - selectionStart.x);
+
+            // Cache bounding rects for all nodes once at the start of selection to avoid DOM thrash
+            try {
+                const map = new Map();
+                const rootRect = root.getBoundingClientRect();
+                nodes.forEach((n) => {
+                    const el = document.querySelector(`[data-id="${n.id.replace(/\"/g, '\\\"')}"]`);
+                    if (!el) return;
+                    const r = el.getBoundingClientRect();
+                    // store absolute coords (left/top) so later we can subtract root rect
+                    map.set(n.id, { left: r.left, top: r.top, width: r.width, height: r.height });
+                });
+                nodeRectsRef.current = map;
+            } catch (e) {
+                // ignore caching failures and fall back to live reads
+                nodeRectsRef.current = new Map();
+            }
         const height = Math.abs(curY - selectionStart.y);
         const box = { x, y, width, height };
         setSelectionBox(box);
@@ -262,6 +290,8 @@ function Flow() {
         setIsSelecting(false);
         setSelectionBox(null);
         setSelectionStart(null);
+    // Clear cached rects to free memory and ensure fresh reads next time
+    nodeRectsRef.current = new Map();
     }, []);
 
     // Handle mouse events on document to capture drags outside the pane
