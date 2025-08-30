@@ -178,38 +178,39 @@
           inDegree.set(edge.target, inDegree.get(edge.target) + 1);
         });
 
-        // Topological sort using Kahn's algorithm (avoid array.shift by using head pointer)
+        // Topological sort using Kahn's algorithm
         const columns = [];
-        const initialQueue = [];
+        let queue = [];
 
         // Find all nodes with no incoming edges (first column)
         nodes.forEach((node) => {
           if (inDegree.get(node.id) === 0) {
-            initialQueue.push(node.id);
+            queue.push(node.id);
           }
         });
 
         let columnIndex = 0;
-        let queue = initialQueue;
         while (queue.length > 0) {
+          const currentLevel = [...queue];
           columns[columnIndex] = [];
-          const nextQueue = [];
-          let head = 0;
-          while (head < queue.length) {
-            const nodeId = queue[head++];
+          queue = [];
+
+          currentLevel.forEach((nodeId) => {
             const node = nodeMap.get(nodeId);
             columns[columnIndex].push(node);
 
             // Process neighbors
             const neighbors = adjacencyList.get(nodeId) || [];
-            for (let i = 0; i < neighbors.length; i++) {
-              const neighborId = neighbors[i];
+            neighbors.forEach((neighborId) => {
               const newInDegree = inDegree.get(neighborId) - 1;
               inDegree.set(neighborId, newInDegree);
-              if (newInDegree === 0) nextQueue.push(neighborId);
-            }
-          }
-          queue = nextQueue;
+
+              if (newInDegree === 0) {
+                queue.push(neighborId);
+              }
+            });
+          });
+
           columnIndex++;
         }
 
@@ -272,9 +273,8 @@
         );
         const [selectedNodes, setSelectedNodes] = React.useState(new Set());
         const [isSelecting, setIsSelecting] = React.useState(false);
-  const [selectionBox, setSelectionBox] = React.useState(null);
-  const [selectionStart, setSelectionStart] = React.useState(null);
-  const nodeRectsRef = React.useRef(new Map());
+        const [selectionBox, setSelectionBox] = React.useState(null);
+        const [selectionStart, setSelectionStart] = React.useState(null);
 
         const onNodesChange = React.useCallback((changes) => {
           // Only honor position changes; selection handled manually
@@ -338,25 +338,9 @@
               setIsSelecting(true);
               setSelectionStart({ x: startX, y: startY });
               setSelectionBox({ x: startX, y: startY, width: 0, height: 0 });
-
-              // Cache bounding rects for all nodes once at the start of selection
-              try {
-                const map = new Map();
-                nodes.forEach((n) => {
-                  const el = document.querySelector(
-                    `[data-id="${n.id.replace(/"/g, '\\\"')}"]`
-                  );
-                  if (!el) return;
-                  const r = el.getBoundingClientRect();
-                  map.set(n.id, { left: r.left, top: r.top, width: r.width, height: r.height });
-                });
-                nodeRectsRef.current = map;
-              } catch (err) {
-                nodeRectsRef.current = new Map();
-              }
             }
           },
-          [nodes]
+          []
         );
 
         const computeDragSelection = React.useCallback(
@@ -366,24 +350,15 @@
             const rootRect = root.getBoundingClientRect();
             const next = new Set(baseSet);
             nodes.forEach((n) => {
-              const cached = nodeRectsRef.current.get(n.id);
-              let x, y, w, h;
-              if (cached) {
-                x = cached.left - rootRect.left;
-                y = cached.top - rootRect.top;
-                w = cached.width;
-                h = cached.height;
-              } else {
-                const el = document.querySelector(
-                  `[data-id="${n.id.replace(/"/g, '\\\"')}"]`
-                );
-                if (!el) return;
-                const r = el.getBoundingClientRect();
-                x = r.left - rootRect.left;
-                y = r.top - rootRect.top;
-                w = r.width;
-                h = r.height;
-              }
+              const el = document.querySelector(
+                `[data-id="${n.id.replace(/"/g, '\\"')}"]`
+              );
+              if (!el) return;
+              const r = el.getBoundingClientRect();
+              const x = r.left - rootRect.left;
+              const y = r.top - rootRect.top;
+              const w = r.width;
+              const h = r.height;
               if (
                 x < box.x + box.width &&
                 x + w > box.x &&
@@ -425,7 +400,6 @@
           setIsSelecting(false);
           setSelectionBox(null);
           setSelectionStart(null);
-          nodeRectsRef.current = new Map();
         }, []);
 
         React.useEffect(() => {
