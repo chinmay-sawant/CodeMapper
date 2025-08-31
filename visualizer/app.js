@@ -318,7 +318,7 @@ function Flow() {
 
         try {
             // Load the HTML template
-            const response = await fetch('/path-view.html');
+            const response = await fetch('/path-view/');
             if (!response.ok) {
                 throw new Error(`Failed to load template: ${response.status}`);
             }
@@ -342,7 +342,7 @@ function Flow() {
         } catch (error) {
             console.error('Failed to open path in new window:', error);
             // Fallback: show error message
-            alert('Failed to load path view template. Please check that path-view.html is available.');
+            alert('Failed to load path view template. Please check that path-view/ is available.');
         }
     }, [nodes, edges, highlightedPath]);
 

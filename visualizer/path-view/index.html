@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeMapper | Path View</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://esm.sh/reactflow@11.11.1/dist/style.css"
+    />
+    <script
+      async
+      src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"
+    ></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom": "https://esm.sh/react-dom@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "reactflow": "https://esm.sh/reactflow@11.11.1?deps=react@18.2.0,react-dom@18.2.0"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div
+      id="root"
+      style="width: 100vw; height: 100vh; position: relative"
+    ></div>
+    <button class="export-button" id="exportBtn">📷 Export PNG</button>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
+              style: {
+                left: selectionBox.x + "px",
+                top: selectionBox.y + "px",
+                width: selectionBox.width + "px",
+                height: selectionBox.height + "px",
+              },
+            }),
+          React.createElement(
+            ReactFlow,
+            {
+              nodes: nodes,
+              edges: pathEdges,
+              onNodesChange: onNodesChange,
+              nodeTypes: nodeTypes,
+              onNodeClick: onNodeClick,
+              onPaneClick: onPaneClick,
+              fitView: true,
+              fitViewOptions: { padding: 0.15, maxZoom: 1.0, minZoom: 0.3 },
+              defaultEdgeOptions: defaultEdgeOptions,
+              nodesDraggable: true,
+              nodesConnectable: false,
+              elementsSelectable: false,
+              selectNodesOnDrag: false,
+              proOptions: { hideAttribution: true },
+              minZoom: 0.1,
+              maxZoom: 3,
+            },
+            React.createElement(Controls),
+            React.createElement(Background, {
+              variant: "dots",
+              gap: 12,
+              size: 1,
+            })
+          )
+        );
+      }
+
+      const root = createRoot(document.getElementById("root"));
+      root.render(
+        React.createElement(
+          React.StrictMode,
+          null,
+          React.createElement(PathView)
+        )
+      );
+
+      // Enhanced export button handler with improved quality
+      document.getElementById("exportBtn").onclick = function () {
+        const viewport = document.querySelector(".react-flow__viewport");
+        if (!viewport) return;
+
+        // Calculate dimensions for high DPI
+        const pixelRatio = window.devicePixelRatio || 2;
+        const width = viewport.scrollWidth * pixelRatio;
+        const height = viewport.scrollHeight * pixelRatio;
+
+        toPng(viewport, {
+          backgroundColor: "#1a192b",
+          width: width,
+          height: height,
+          pixelRatio: pixelRatio,
+          quality: 1.0,
+          canvasWidth: width,
+          canvasHeight: height,
+          style: {
+            transform: "scale(" + pixelRatio + ")",
+            transformOrigin: "top left",
+          },
+        })
+          .then((dataUrl) => {
+            const link = document.createElement("a");
+            link.download = "codemapper-path-hq.png";
+            link.href = dataUrl;
+            link.click();
+          })
+          .catch((err) => {
+            console.error("Failed to export PNG:", err);
+          });
+      };
+    </script>
+  </body>
+</html>

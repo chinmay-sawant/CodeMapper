@@ -1,0 +1,325 @@
+/* General body and dark theme setup */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #1a192b; /* n8n-like dark background */
+  color: #f0f0f0;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* React Flow canvas styling */
+.react-flow__viewport {
+  background-color: #1a192b;
+  background-image: radial-gradient(#3a394b 1px, transparent 0);
+  background-size: 30px 30px;
+}
+
+/* Custom Node Styling */
+.react-flow__node {
+  background: #2a293b;
+  border: 1px solid #4a495b;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  font-size: 12px;
+  min-width: 200px;
+}
+
+.node-header {
+  background-color: #3a394b;
+  padding: 6px 12px;
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+  font-weight: bold;
+  color: #b0b0b0;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.node-body {
+  padding: 12px;
+}
+
+.node-body .function-name {
+  font-weight: bold;
+  font-size: 14px;
+  color: #fff;
+}
+
+.node-body .file-path {
+  font-family: monospace;
+  font-size: 11px;
+  color: #8a8a9e;
+  margin-top: 6px;
+}
+
+/*
+  FINAL, HIGH-SPECIFICITY EDGE STYLING
+*/
+
+/* 1. Define the animation for the "marching ants" effect */
+@keyframes dash-animation {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -16; /* Match the total dash pattern length */
+  }
+}
+
+/* 2. Target edges with our custom 'n8n-edge' class for high specificity */
+.react-flow__edge.n8n-edge .react-flow__edge-path {
+  stroke: #ffffff; /* Use pure white for max visibility */
+  stroke-width: 1.25; /* Slightly thicker to reduce aliasing shimmer */
+
+  /* Make the stroke stable on zoom and avoid constant compositing */
+  stroke-dasharray: none;
+  vector-effect: non-scaling-stroke;
+  shape-rendering: geometricPrecision;
+
+  /* removed animation, will-change and transform to prevent flicker */
+}
+
+/* 3. Style the arrowhead for our custom edges */
+.react-flow__edge.n8n-edge .react-flow__marker-end path {
+  fill: #ffffff;
+}
+
+/* 4. Highlighted edge styling for path backtracking */
+.react-flow__edge.n8n-edge.highlighted .react-flow__edge-path {
+  stroke: #ffd700 !important; /* Golden yellow for highlighted path */
+  stroke-width: 2 !important; /* Slightly thicker for highlighted */
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
+
+  /* Keep the animation only for highlighted edges */
+  stroke-dasharray: 10 6; /* 10px dash, 6px gap = 16px total pattern */
+  animation: dash-animation 1s linear infinite;
+
+  /* removed will-change and transform to avoid re-rasterization flicker */
+}
+
+/* 5. Highlighted arrowhead for path backtracking */
+.react-flow__edge.n8n-edge.highlighted .react-flow__marker-end path {
+  fill: #ffd700 !important;
+  filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.8));
+}
+
+/* UI controls and minimap styling */
+.react-flow__controls button {
+  background-color: #2a293b;
+  border-bottom: 1px solid #4a495b;
+  color: #f0f0f0;
+}
+.react-flow__controls button:hover {
+  background-color: #3a394b;
+}
+
+.react-flow__minimap {
+  background-color: #1a192b;
+  border: 1px solid #4a495b;
+}
+.react-flow__minimap-mask {
+  fill: rgba(42, 41, 59, 0.7);
+}
+
+/* Path view controls */
+.path-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  gap: 10px;
+}
+
+.path-button {
+  background-color: #2a293b;
+  border: 1px solid #4a495b;
+  color: #f0f0f0;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.path-button:hover {
+  background-color: #3a394b;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.path-button.primary {
+  background-color: #4a9eff;
+  border-color: #4a9eff;
+}
+
+.path-button.primary:hover {
+  background-color: #357abd;
+  border-color: #357abd;
+}
+
+.path-button.export {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: #ffffff;
+}
+
+.path-button.export:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.path-button.secondary {
+  background-color: #ff6b6b;
+  border-color: #ff6b6b;
+}
+
+.path-button.secondary:hover {
+  background-color: #e55555;
+  border-color: #e55555;
+}
+
+.export-button {
+  background-color: #28a745;
+  border: 1px solid #28a745;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.export-button:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Loading indicator styling */
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  font-size: 18px;
+  color: #b0b0b0;
+}
+
+/* Selection box for multi-select */
+.selection-box {
+  position: absolute;
+  border: 2px dashed #4a9eff;
+  background-color: rgba(74, 158, 255, 0.1);
+  pointer-events: none;
+  z-index: 1000;
+  border-radius: 4px;
+}
+
+/* Selected node styling */
+.react-flow__node.selected {
+  box-shadow: 0 0 0 2px #4a9eff !important;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+.react-flow__node.selected .custom-node {
+  border-color: #4a9eff !important;
+}
+
+/* Prevent text selection during drag selection */
+.react-flow__pane {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Path View Specific Styles */
+/* Ultra-compact layout styles for path view */
+.react-flow__node {
+  min-width: 150px !important;
+  max-width: 200px !important;
+  font-size: 10px !important;
+  min-height: 60px !important;
+}
+.custom-node {
+  min-height: 60px !important;
+  border-radius: 4px !important;
+}
+.node-header {
+  padding: 2px 6px !important;
+  font-size: 8px !important;
+  font-weight: bold !important;
+  line-height: 1.2 !important;
+}
+.node-body {
+  padding: 4px 6px !important;
+}
+.node-body .function-name {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  margin-bottom: 2px !important;
+  line-height: 1.2 !important;
+}
+.node-body .file-path {
+  font-size: 8px !important;
+  margin-top: 2px !important;
+  line-height: 1.1 !important;
+  opacity: 0.8 !important;
+}
+/* Compact edge styling for Bezier curves */
+.react-flow__edge.n8n-edge .react-flow__edge-path {
+  stroke-width: 1px !important; /* Thin lines for path view */
+}
+.react-flow__edge.n8n-edge.highlighted .react-flow__edge-path {
+  stroke-width: 2px !important; /* Slightly thicker for highlighted */
+}
+.export-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  background-color: #28a745;
+  border: 1px solid #28a745;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.export-button:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+.selection-box {
+  position: absolute;
+  border: 2px dashed #4a9eff;
+  background-color: rgba(74, 158, 255, 0.1);
+  pointer-events: none;
+  z-index: 1000;
+  border-radius: 4px;
+}
+.react-flow__node.selected {
+  box-shadow: 0 0 0 2px #4a9eff !important;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
