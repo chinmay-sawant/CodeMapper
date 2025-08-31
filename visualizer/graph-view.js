@@ -15,10 +15,14 @@ class GraphView {
         this.linkMap = new Map();
         this.searchIndex = [];
         
+        // DOM element caching for performance
+        this.cachedLinkElements = null;
+        this.cachedNodeElements = null;
+        
         // Graph parameters
         this.forceStrength = 0.5;
         this.linkDistance = 100;
-        this.nodeRadius = 20;
+        this.nodeRadius = 35; // Increased from 20 to 35 to fit text better
         this.maxNeighborsToShow = 3;
         
         this.init();
@@ -26,13 +30,29 @@ class GraphView {
 
     async init() {
         try {
+            console.time('GraphView Initialization');
+            
             await this.loadData();
+            console.timeLog('GraphView Initialization', 'Data loaded');
+            
             this.setupUI();
+            console.timeLog('GraphView Initialization', 'UI setup complete');
+            
             this.setupGraph();
+            console.timeLog('GraphView Initialization', 'Graph setup complete');
+            
             this.processData();
+            console.timeLog('GraphView Initialization', 'Data processed');
+            
             this.createSearchIndex();
+            console.timeLog('GraphView Initialization', 'Search index created');
+            
             this.render();
+            console.timeLog('GraphView Initialization', 'Initial render complete');
+            
             this.hideLoading();
+            console.timeEnd('GraphView Initialization');
+            
         } catch (error) {
             console.error('Failed to initialize graph view:', error);
             this.showError('Failed to load graph data. Please try refreshing the page.');
@@ -40,23 +60,40 @@ class GraphView {
     }
 
     async loadData() {
-        const response = await fetch('/api/codemap');
-        if (!response.ok) {
-            throw new Error(`Failed to load data: ${response.status}`);
+        try {
+            const response = await fetch('/api/codemap');
+            if (!response.ok) {
+                throw new Error(`Failed to load data: ${response.status}`);
+            }
+            this.data = await response.json();
+        } catch (error) {
+            console.error('Error loading data:', error);
+            throw error;
         }
-        this.data = await response.json();
     }
 
     setupUI() {
-        // Setup controls
+        // Setup controls with debouncing for better performance
+        let forceUpdateTimer = null;
+        
         document.getElementById('force-strength').addEventListener('input', (e) => {
             this.forceStrength = parseFloat(e.target.value);
-            this.updateForces();
+            
+            // Debounce force updates to avoid too many simulation restarts
+            clearTimeout(forceUpdateTimer);
+            forceUpdateTimer = setTimeout(() => {
+                this.updateForces();
+            }, 100);
         });
 
         document.getElementById('link-distance').addEventListener('input', (e) => {
             this.linkDistance = parseInt(e.target.value);
-            this.updateForces();
+            
+            // Debounce force updates to avoid too many simulation restarts
+            clearTimeout(forceUpdateTimer);
+            forceUpdateTimer = setTimeout(() => {
+                this.updateForces();
+            }, 100);
         });
 
         document.getElementById('center-graph-btn').addEventListener('click', () => {
@@ -75,10 +112,15 @@ class GraphView {
             this.hideNodeDetails();
         });
 
-        // Setup search
+        // Setup search with debouncing
         const searchInput = document.getElementById('search-input');
+        let searchTimer = null;
+        
         searchInput.addEventListener('input', (e) => {
-            this.handleSearch(e.target.value);
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                this.handleSearch(e.target.value);
+            }, 200); // 200ms debounce
         });
 
         // Setup keyboard shortcuts
@@ -125,19 +167,29 @@ class GraphView {
         // Create main group for graph elements
         this.g = this.svg.append('g');
 
-        // Setup simulation
+        // Setup simulation with optimized settings
         this.simulation = d3.forceSimulation()
-            .force('link', d3.forceLink().id(d => d.id).distance(this.linkDistance))
-            .force('charge', d3.forceManyBody().strength(-300 * this.forceStrength))
+            .alphaDecay(0.0228) // Slower decay for smoother animation
+            .velocityDecay(0.4) // Improved stabilization
+            .force('link', d3.forceLink().id(d => d.id).distance(this.linkDistance).strength(0.8))
+            .force('charge', d3.forceManyBody().strength(-300 * this.forceStrength).distanceMax(300))
             .force('center', d3.forceCenter(rect.width / 2, rect.height / 2))
-            .force('collision', d3.forceCollide().radius(this.nodeRadius + 5));
+            .force('collision', d3.forceCollide().radius(this.nodeRadius + 10).strength(0.7));
 
-        // Handle window resize
+        // Handle window resize with debouncing
+        let resizeTimer = null;
         window.addEventListener('resize', () => {
-            const newRect = container.getBoundingClientRect();
-            this.svg.attr('width', newRect.width).attr('height', newRect.height);
-            this.simulation.force('center', d3.forceCenter(newRect.width / 2, newRect.height / 2));
-            this.simulation.restart();
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                const newRect = container.getBoundingClientRect();
+                this.svg.attr('width', newRect.width).attr('height', newRect.height);
+                this.simulation.force('center', d3.forceCenter(newRect.width / 2, newRect.height / 2));
+                
+                // Only restart if simulation is not actively running
+                if (this.simulation.alpha() < 0.1) {
+                    this.simulation.alpha(0.3).restart();
+                }
+            }, 250);
         });
     }
 
@@ -251,9 +303,18 @@ class GraphView {
     }
 
     render() {
+        // Clear any cached DOM elements to ensure fresh selections
+        this.clearDOMCache();
+        
         this.renderLinks();
         this.renderNodes();
         this.updateSimulation();
+    }
+
+    clearDOMCache() {
+        // Method to clear cached DOM elements when re-rendering
+        this.cachedLinkElements = null;
+        this.cachedNodeElements = null;
     }
 
     renderLinks() {
@@ -266,10 +327,15 @@ class GraphView {
 
         linkSelection.exit().remove();
 
-        linkSelection.enter()
+        const linkEnter = linkSelection.enter()
             .append('line')
             .attr('class', 'link')
-            .merge(linkSelection);
+            .style('stroke', '#4b5563')
+            .style('stroke-width', 1.5)
+            .style('opacity', 0.6);
+
+        // Merge enter and update selections for efficiency
+        linkEnter.merge(linkSelection);
     }
 
     renderNodes() {
@@ -300,8 +366,8 @@ class GraphView {
         // Add main text
         nodeEnter.append('text')
             .attr('class', 'node-text')
-            .attr('dy', -2)
-            .text(d => this.truncateText(d.name, 12))
+            .attr('dy', -3)
+            .text(d => this.truncateText(d.name, 15)) // Increased from 12 to 15
             .style('paint-order', 'stroke fill')
             .style('stroke', 'rgba(30, 30, 30, 0.8)')
             .style('stroke-width', '2px')
@@ -310,8 +376,8 @@ class GraphView {
         // Add package text
         nodeEnter.append('text')
             .attr('class', 'node-package-text')
-            .attr('dy', 12)
-            .text(d => this.truncateText(d.package.split('/').pop() || '', 10))
+            .attr('dy', 13)
+            .text(d => this.truncateText(d.package.split('/').pop() || '', 13)) // Increased from 10 to 13
             .style('paint-order', 'stroke fill')
             .style('stroke', 'rgba(30, 30, 30, 0.8)')
             .style('stroke-width', '1px')
@@ -325,14 +391,14 @@ class GraphView {
 
         neighborGroup.append('circle')
             .attr('class', 'neighbor-count-bg')
-            .attr('r', 8)
-            .attr('cx', 15)
-            .attr('cy', -15);
+            .attr('r', 10) // Increased from 8
+            .attr('cx', 22) // Adjusted for larger circles
+            .attr('cy', -22); // Adjusted for larger circles
 
         neighborGroup.append('text')
             .attr('class', 'neighbor-count')
-            .attr('x', 15)
-            .attr('y', -12)
+            .attr('x', 22) // Adjusted for larger circles
+            .attr('y', -18) // Adjusted for larger circles
             .text(d => this.getHiddenNeighborCount(d));
 
         // Add click handler for neighbor indicator
@@ -384,15 +450,39 @@ class GraphView {
         this.simulation.nodes(visibleNodes);
         this.simulation.force('link').links(visibleLinks);
 
-        this.simulation.on('tick', () => {
-            this.g.selectAll('.link')
-                .attr('x1', d => d.source.x)
-                .attr('y1', d => d.source.y)
-                .attr('x2', d => d.target.x)
-                .attr('y2', d => d.target.y);
+        // Use instance variables for DOM caching
+        let animationFrame = null;
 
-            this.g.selectAll('.node-group')
-                .attr('transform', d => `translate(${d.x},${d.y})`);
+        this.simulation.on('tick', () => {
+            // Use requestAnimationFrame to batch DOM updates
+            if (animationFrame) return;
+            
+            animationFrame = requestAnimationFrame(() => {
+                // Cache DOM selections if not already cached
+                if (!this.cachedLinkElements) {
+                    this.cachedLinkElements = this.g.selectAll('.link');
+                }
+                if (!this.cachedNodeElements) {
+                    this.cachedNodeElements = this.g.selectAll('.node-group');
+                }
+                
+                // Update positions efficiently
+                this.cachedLinkElements
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                this.cachedNodeElements
+                    .attr('transform', d => `translate(${d.x},${d.y})`);
+                
+                animationFrame = null;
+            });
+        });
+
+        // Clear cached elements when simulation ends
+        this.simulation.on('end', () => {
+            this.clearDOMCache();
         });
 
         this.simulation.restart();
@@ -728,11 +818,21 @@ class GraphView {
     }
 
     updateForces() {
+        if (!this.simulation) {
+            console.warn('Simulation not initialized yet');
+            return;
+        }
+        
+        // Update force parameters
         this.simulation
             .force('charge', d3.forceManyBody().strength(-300 * this.forceStrength))
-            .force('link', d3.forceLink().id(d => d.id).distance(this.linkDistance));
+            .force('link', d3.forceLink().id(d => d.id).distance(this.linkDistance))
+            .force('collision', d3.forceCollide().radius(this.nodeRadius + 10));
         
-        this.simulation.restart();
+        // Only restart if the simulation is not already running
+        if (this.simulation.alpha() < 0.1) {
+            this.simulation.alpha(0.3).restart();
+        }
     }
 
     updateZoomLevel(scale) {
@@ -746,60 +846,88 @@ class GraphView {
     }
 
     showTooltip(event, node) {
-        const tooltip = document.createElement('div');
-        tooltip.className = 'tooltip';
-        tooltip.innerHTML = `
-            <div><strong>${node.name}</strong></div>
-            <div>${node.package}</div>
-            <div>Dependencies: ${node.dependencies.length}</div>
-            <div>Callers: ${node.callers.length}</div>
-        `;
-        
-        tooltip.style.left = (event.pageX + 10) + 'px';
-        tooltip.style.top = (event.pageY - 10) + 'px';
-        
-        document.body.appendChild(tooltip);
+        try {
+            // Remove any existing tooltip first
+            this.hideTooltip();
+            
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.innerHTML = `
+                <div><strong>${node.name}</strong></div>
+                <div>${node.package}</div>
+                <div>Dependencies: ${node.dependencies.length}</div>
+                <div>Callers: ${node.callers.length}</div>
+            `;
+            
+            tooltip.style.left = (event.pageX + 10) + 'px';
+            tooltip.style.top = (event.pageY - 10) + 'px';
+            
+            document.body.appendChild(tooltip);
+        } catch (error) {
+            console.warn('Failed to show tooltip:', error);
+        }
     }
 
     hideTooltip() {
-        const tooltip = document.querySelector('.tooltip');
-        if (tooltip) {
-            tooltip.remove();
+        try {
+            const tooltips = document.querySelectorAll('.tooltip');
+            tooltips.forEach(tooltip => tooltip.remove());
+        } catch (error) {
+            console.warn('Failed to hide tooltip:', error);
         }
     }
 
     showContextMenu(event, node) {
-        const menu = document.createElement('div');
-        menu.className = 'context-menu';
-        
-        const actions = [
-            { label: 'Focus on Node', action: () => this.focusOnNode(node) },
-            { label: this.expandedNodes.has(node.id) ? 'Collapse' : 'Expand', action: () => this.toggleNodeExpansion(node) },
-            { label: 'Show Details', action: () => this.showNodeDetails(node) }
-        ];
+        try {
+            // Remove any existing context menu
+            const existingMenu = document.querySelector('.context-menu');
+            if (existingMenu) {
+                existingMenu.remove();
+            }
+            
+            const menu = document.createElement('div');
+            menu.className = 'context-menu';
+            
+            const actions = [
+                { label: 'Focus on Node', action: () => this.focusOnNode(node) },
+                { label: this.expandedNodes.has(node.id) ? 'Collapse' : 'Expand', action: () => this.toggleNodeExpansion(node) },
+                { label: 'Show Details', action: () => this.showNodeDetails(node) }
+            ];
 
-        actions.forEach(action => {
-            const item = document.createElement('div');
-            item.className = 'context-menu-item';
-            item.textContent = action.label;
-            item.addEventListener('click', () => {
-                action.action();
-                menu.remove();
+            actions.forEach(action => {
+                const item = document.createElement('div');
+                item.className = 'context-menu-item';
+                item.textContent = action.label;
+                item.addEventListener('click', () => {
+                    try {
+                        action.action();
+                        menu.remove();
+                    } catch (error) {
+                        console.error('Context menu action failed:', error);
+                        menu.remove();
+                    }
+                });
+                menu.appendChild(item);
             });
-            menu.appendChild(item);
-        });
 
-        menu.style.left = event.pageX + 'px';
-        menu.style.top = event.pageY + 'px';
-        
-        document.body.appendChild(menu);
+            menu.style.left = event.pageX + 'px';
+            menu.style.top = event.pageY + 'px';
+            
+            document.body.appendChild(menu);
 
-        // Remove menu when clicking elsewhere
-        setTimeout(() => {
-            document.addEventListener('click', () => {
-                menu.remove();
-            }, { once: true });
-        }, 0);
+            // Remove menu when clicking elsewhere
+            setTimeout(() => {
+                const clickHandler = (e) => {
+                    if (!menu.contains(e.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', clickHandler);
+                    }
+                };
+                document.addEventListener('click', clickHandler);
+            }, 0);
+        } catch (error) {
+            console.warn('Failed to show context menu:', error);
+        }
     }
 
     hideLoading() {
@@ -839,7 +967,25 @@ class GraphView {
 
     // Utility functions
     truncateText(text, maxLength) {
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        if (text.length <= maxLength) return text;
+        
+        // Try to break at word boundaries for better readability
+        if (text.includes('_')) {
+            const parts = text.split('_');
+            let result = parts[0];
+            for (let i = 1; i < parts.length; i++) {
+                if ((result + '_' + parts[i]).length <= maxLength) {
+                    result += '_' + parts[i];
+                } else {
+                    break;
+                }
+            }
+            if (result.length < text.length) {
+                return result + '...';
+            }
+        }
+        
+        return text.substring(0, maxLength - 3) + '...';
     }
 
     hashCode(str) {
@@ -855,5 +1001,29 @@ class GraphView {
 
 // Initialize the graph view when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new GraphView();
+    try {
+        // Add a small delay to ensure all resources are loaded
+        setTimeout(() => {
+            try {
+                new GraphView();
+            } catch (error) {
+                console.error('GraphView initialization failed:', error);
+                // Show error in the loading indicator
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.innerHTML = `
+                        <div style="color: #ef4444; text-align: center;">
+                            <h3>Initialization Error</h3>
+                            <p>Failed to initialize the graph view. Please refresh the page.</p>
+                            <button onclick="location.reload()" style="margin-top: 16px; padding: 8px 16px; background: #7c3aed; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Refresh Page
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }, 100);
+    } catch (error) {
+        console.error('DOMContentLoaded handler failed:', error);
+    }
 });

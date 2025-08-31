@@ -7,7 +7,23 @@
     <link rel="stylesheet" href="./graph-view.css" />
     <script src="https://d3js.org/d3.v7.min.js"></script>
   </head>
+
   <body>
+    <!-- Simple runtime error suppression for browser extensions -->
+    <script>
+      window.addEventListener(
+        "error",
+        function (e) {
+          if (e.message && e.message.includes("message port closed")) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+        },
+        true
+      );
+    </script>
+
     <div id="app">
       <!-- Controls Panel -->
       <div id="controls-panel">
@@ -47,7 +63,7 @@
           <button id="reset-view-btn" class="control-btn">Reset View</button>
         </div>
         <div class="control-group keyboard-shortcuts">
-          <small style="color: #9ca3af; font-size: 10px">
+          <small style="color: #9ca3af; font-size: 12px; line-height: 1.4">
             <strong>Shortcuts:</strong><br />
             Ctrl+F: Search<br />
             Ctrl+C: Center<br />
@@ -101,6 +117,7 @@
       </div>
     </div>
 
-    <script type="module" src="./graph-view.js"></script>
+    <!-- Load the graph view JavaScript -->
+    <script src="graph-view.js"></script>
   </body>
 </html>
