@@ -1,4 +1,4 @@
-// Obsidian-style Graph View Implementation
+// Optimized Obsidian-style Graph View Implementation
 class GraphView {
     constructor() {
         this.data = null;
@@ -24,9 +24,17 @@ class GraphView {
         this.lastRenderTime = 0;
         this.minRenderInterval = 16; // 60fps limit
         
+        // Performance monitoring
+        this.performanceMetrics = {
+            frameCount: 0,
+            lastFpsUpdate: 0,
+            averageFps: 60,
+            renderTimes: []
+        };
+        
         // Viewport optimization
         this.viewportBounds = { x: 0, y: 0, width: 0, height: 0 };
-        this.viewportPadding = 200; // Extra padding for smooth pan
+        this.viewportPadding = 200;
         
         // Graph parameters
         this.forceStrength = 0.5;
@@ -83,27 +91,25 @@ class GraphView {
     }
 
     setupUI() {
-        // Setup controls with debouncing for better performance
+        // Setup controls with optimized debouncing
         let forceUpdateTimer = null;
         
         document.getElementById('force-strength').addEventListener('input', (e) => {
             this.forceStrength = parseFloat(e.target.value);
             
-            // Debounce force updates to avoid too many simulation restarts
             clearTimeout(forceUpdateTimer);
             forceUpdateTimer = setTimeout(() => {
                 this.updateForces();
-            }, 100);
+            }, 150);
         });
 
         document.getElementById('link-distance').addEventListener('input', (e) => {
             this.linkDistance = parseInt(e.target.value);
             
-            // Debounce force updates to avoid too many simulation restarts
             clearTimeout(forceUpdateTimer);
             forceUpdateTimer = setTimeout(() => {
                 this.updateForces();
-            }, 100);
+            }, 150);
         });
 
         document.getElementById('center-graph-btn').addEventListener('click', () => {
@@ -122,7 +128,7 @@ class GraphView {
             this.hideNodeDetails();
         });
 
-        // Setup search with debouncing
+        // Setup search with optimized debouncing
         const searchInput = document.getElementById('search-input');
         let searchTimer = null;
         
@@ -130,7 +136,7 @@ class GraphView {
             clearTimeout(searchTimer);
             searchTimer = setTimeout(() => {
                 this.handleSearch(e.target.value);
-            }, 200); // 200ms debounce
+            }, 300); // Increased debounce for better performance
         });
 
         // Setup keyboard shortcuts
@@ -167,13 +173,13 @@ class GraphView {
             .attr('height', rect.height);
 
         // Create zoom behavior with optimized handling
-        const zoom = d3.zoom()
+        this.zoom = d3.zoom()
             .scaleExtent([0.1, 10])
             .on('zoom', (event) => {
                 this.handleZoom(event);
             });
 
-        this.svg.call(zoom);
+        this.svg.call(this.zoom);
 
         // Create main group for graph elements
         this.g = this.svg.append('g');
@@ -185,7 +191,7 @@ class GraphView {
             .force('link', d3.forceLink().id(d => d.id).distance(this.linkDistance).strength(0.6))
             .force('charge', d3.forceManyBody().strength(-200 * this.forceStrength).distanceMax(250))
             .force('center', d3.forceCenter(rect.width / 2, rect.height / 2))
-            .force('collision', d3.forceCollide().radius(this.nodeRadius + 8).strength(0.5));
+            .force('collision', d3.forceCollide().radius(this.nodeRadius + 15).strength(0.7)); // Increased gap
 
         // Handle window resize with optimized debouncing
         let resizeTimer = null;
@@ -347,14 +353,28 @@ class GraphView {
     }
 
     determineInitialVisibleNodes() {
-        // Prioritize nodes by importance and show only the most important ones initially
-        const sortedNodes = [...this.nodes]
-            .sort((a, b) => b.importance - a.importance)
-            .slice(0, this.maxVisibleNodes);
+        // Show root nodes (nodes with no callers) and their immediate dependencies  
+        const rootNodes = this.nodes.filter(node => node.callers.length === 0);
+        const maxNodesToShow = Math.min(50, Math.max(20, this.nodes.length * 0.1));
         
-        sortedNodes.forEach(node => {
+        rootNodes.forEach(node => {
             this.visibleNodes.add(node.id);
+            // Show some of their dependencies
+            node.dependencies.slice(0, this.maxNeighborsToShow).forEach(depId => {
+                this.visibleNodes.add(depId);
+            });
         });
+
+        // If we don't have enough visible nodes, add some high-degree nodes
+        if (this.visibleNodes.size < maxNodesToShow) {
+            const sortedByDegree = [...this.nodes]
+                .sort((a, b) => b.totalNeighbors - a.totalNeighbors)
+                .slice(0, maxNodesToShow - this.visibleNodes.size);
+            
+            sortedByDegree.forEach(node => {
+                this.visibleNodes.add(node.id);
+            });
+        }
 
         // Add visible links for initial nodes
         this.updateVisibleLinks();
@@ -551,46 +571,6 @@ class GraphView {
             this.clearHighlights();
         });
     }
-            .attr('y', -18) // Adjusted for larger circles
-            .text(d => this.getHiddenNeighborCount(d));
-
-        // Add click handler for neighbor indicator
-        neighborGroup.on('click', (event, d) => {
-            event.stopPropagation();
-            this.expandNode(d);
-        });
-
-        // Add click handlers
-        nodeEnter.on('click', (event, d) => {
-            event.stopPropagation();
-            this.handleNodeClick(d);
-        });
-
-        nodeEnter.on('contextmenu', (event, d) => {
-            event.preventDefault();
-            this.showContextMenu(event, d);
-        });
-
-        // Add hover effects
-        nodeEnter.on('mouseenter', (event, d) => {
-            this.showTooltip(event, d);
-            this.highlightNeighbors(d);
-        });
-
-        nodeEnter.on('mouseleave', () => {
-            this.hideTooltip();
-            this.clearHighlights();
-        });
-
-        // Merge with existing nodes
-        nodeSelection.merge(nodeEnter)
-            .select('.neighbor-indicator')
-            .style('display', d => this.shouldShowNeighborCount(d) ? 'block' : 'none');
-
-        nodeSelection.merge(nodeEnter)
-            .select('.neighbor-count')
-            .text(d => this.getHiddenNeighborCount(d));
-    }
 
     updateSimulation() {
         const visibleNodes = this.nodes.filter(node => 
@@ -630,6 +610,9 @@ class GraphView {
                 return;
             }
             
+            // Performance monitoring
+            this.updatePerformanceMetrics(now);
+            
             this.lastRenderTime = now;
 
             // Batch DOM updates
@@ -648,6 +631,57 @@ class GraphView {
             
             this.animationFrameId = null;
         });
+    }
+
+    updatePerformanceMetrics(now) {
+        this.performanceMetrics.frameCount++;
+        
+        if (now - this.performanceMetrics.lastFpsUpdate > 1000) {
+            this.performanceMetrics.averageFps = this.performanceMetrics.frameCount;
+            this.performanceMetrics.frameCount = 0;
+            this.performanceMetrics.lastFpsUpdate = now;
+            
+            // Update performance indicator
+            this.updatePerformanceIndicator();
+        }
+    }
+
+    updatePerformanceIndicator() {
+        let perfElement = document.querySelector('.performance-indicator');
+        if (!perfElement) {
+            perfElement = document.createElement('div');
+            perfElement.className = 'performance-indicator';
+            perfElement.style.cssText = `
+                position: fixed;
+                bottom: 60px;
+                right: 20px;
+                background: rgba(40, 40, 40, 0.9);
+                padding: 6px 10px;
+                border-radius: 4px;
+                font-size: 11px;
+                color: #9ca3af;
+                z-index: 1000;
+                font-family: monospace;
+            `;
+            document.body.appendChild(perfElement);
+        }
+        
+        const fps = this.performanceMetrics.averageFps;
+        const nodeCount = this.visibleNodes.size;
+        const linkCount = this.visibleLinks.size;
+        
+        perfElement.innerHTML = `
+            FPS: ${fps} | Nodes: ${nodeCount} | Links: ${linkCount}
+        `;
+        
+        // Color code based on performance
+        if (fps >= 55) {
+            perfElement.style.color = '#10b981'; // Green
+        } else if (fps >= 30) {
+            perfElement.style.color = '#f59e0b'; // Yellow
+        } else {
+            perfElement.style.color = '#ef4444'; // Red
+        }
     }
 
     clearDOMCache() {
@@ -725,7 +759,7 @@ class GraphView {
     expandNode(node) {
         this.expandedNodes.add(node.id);
         
-        // Add hidden neighbors to visible set
+        // Add all hidden neighbors to visible set (not limited)
         [...node.dependencies, ...node.callers].forEach(neighborId => {
             if (!this.visibleNodes.has(neighborId)) {
                 this.visibleNodes.add(neighborId);
@@ -740,6 +774,8 @@ class GraphView {
             }
         });
 
+        // Update links
+        this.updateVisibleLinks();
         this.render();
     }
 
@@ -774,6 +810,7 @@ class GraphView {
             }
         });
 
+        this.updateVisibleLinks();
         this.render();
     }
 
@@ -791,7 +828,7 @@ class GraphView {
         if (node.dependencies.length === 0) {
             dependenciesContainer.innerHTML = '<p class="no-data">No dependencies</p>';
         } else {
-            node.dependencies.forEach(depId => {
+            node.dependencies.slice(0, 20).forEach(depId => { // Limit for performance
                 const depNode = this.nodeMap.get(depId);
                 if (depNode) {
                     const item = document.createElement('div');
@@ -815,7 +852,7 @@ class GraphView {
         if (node.callers.length === 0) {
             callersContainer.innerHTML = '<p class="no-data">No callers</p>';
         } else {
-            node.callers.forEach(callerId => {
+            node.callers.slice(0, 20).forEach(callerId => { // Limit for performance
                 const callerNode = this.nodeMap.get(callerId);
                 if (callerNode) {
                     const item = document.createElement('div');
@@ -918,6 +955,7 @@ class GraphView {
         // Make sure the node is visible
         if (!this.visibleNodes.has(node.id)) {
             this.visibleNodes.add(node.id);
+            this.updateVisibleLinks();
             this.render();
         }
 
@@ -925,23 +963,37 @@ class GraphView {
         this.selectNode(node);
 
         // Center the view on the node
+        const width = parseFloat(this.svg.attr('width'));
+        const height = parseFloat(this.svg.attr('height'));
+        
         const transform = d3.zoomIdentity
-            .translate(this.svg.attr('width') / 2 - node.x, this.svg.attr('height') / 2 - node.y)
+            .translate(width / 2 - node.x, height / 2 - node.y)
             .scale(1.5);
 
         this.svg.transition()
             .duration(750)
-            .call(d3.zoom().transform, transform);
+            .call(this.svg.call(d3.zoom()).transform, transform);
     }
 
     centerGraph() {
         const bounds = this.calculateGraphBounds();
-        const width = this.svg.attr('width');
-        const height = this.svg.attr('height');
+        const width = parseFloat(this.svg.attr('width'));
+        const height = parseFloat(this.svg.attr('height'));
+        
+        if (bounds.width === 0 || bounds.height === 0) {
+            // Fallback to center if no bounds
+            const transform = d3.zoomIdentity.scale(1);
+            if (this.zoom) {
+                this.svg.transition()
+                    .duration(750)
+                    .call(this.zoom.transform, transform);
+            }
+            return;
+        }
         
         const scale = Math.min(
-            width / (bounds.width + 100),
-            height / (bounds.height + 100),
+            width / (bounds.width + 200),
+            height / (bounds.height + 200),
             2
         );
 
@@ -952,9 +1004,11 @@ class GraphView {
             )
             .scale(scale);
 
-        this.svg.transition()
-            .duration(750)
-            .call(d3.zoom().transform, transform);
+        if (this.zoom) {
+            this.svg.transition()
+                .duration(750)
+                .call(this.zoom.transform, transform);
+        }
     }
 
     resetView() {
@@ -996,26 +1050,24 @@ class GraphView {
             return;
         }
         
-        // Update force parameters
+        // Update force parameters with current values
         this.simulation
-            .force('charge', d3.forceManyBody().strength(-300 * this.forceStrength))
-            .force('link', d3.forceLink().id(d => d.id).distance(this.linkDistance))
-            .force('collision', d3.forceCollide().radius(this.nodeRadius + 10));
+            .force('charge', d3.forceManyBody().strength(-200 * this.forceStrength).distanceMax(250))
+            .force('link', d3.forceLink().id(d => d.id).distance(this.linkDistance).strength(0.6))
+            .force('collision', d3.forceCollide().radius(this.nodeRadius + 15).strength(0.7));
         
-        // Only restart if the simulation is not already running
-        if (this.simulation.alpha() < 0.1) {
-            this.simulation.alpha(0.3).restart();
-        }
+        // Restart simulation with updated forces
+        this.simulation.alpha(0.3).restart();
     }
 
     updateZoomLevel(scale) {
-        const zoomElement = document.querySelector('.zoom-level');
+        let zoomElement = document.querySelector('.zoom-level');
         if (!zoomElement) {
-            const zoom = document.createElement('div');
-            zoom.className = 'zoom-level';
-            document.body.appendChild(zoom);
+            zoomElement = document.createElement('div');
+            zoomElement.className = 'zoom-level';
+            document.body.appendChild(zoomElement);
         }
-        document.querySelector('.zoom-level').textContent = `${Math.round(scale * 100)}%`;
+        zoomElement.textContent = `${Math.round(scale * 100)}%`;
     }
 
     showTooltip(event, node) {

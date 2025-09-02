@@ -124,14 +124,15 @@ input[type="range"]::-moz-range-thumb {
 /* Node Styles */
 .node-group {
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.15s ease; /* Reduced animation complexity */
 }
 
 .node-group:hover .node-circle {
   stroke: #7c3aed;
   stroke-width: 3px;
-  filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.8));
-  transform: scale(1.1);
+  filter: drop-shadow(
+    0 0 8px rgba(124, 58, 237, 0.6)
+  ); /* Reduced glow intensity */
 }
 
 .node-group:hover .node-text {
@@ -142,40 +143,29 @@ input[type="range"]::-moz-range-thumb {
 .node-circle {
   stroke: #606060;
   stroke-width: 1.5px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transition: stroke 0.15s ease, stroke-width 0.15s ease; /* Simplified transitions */
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2)); /* Reduced shadow */
 }
 
 .node-circle.selected {
   stroke: #fbbf24;
   stroke-width: 4px;
-  filter: drop-shadow(0 0 16px rgba(251, 191, 36, 1));
-  animation: pulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.8)); /* Reduced glow */
 }
 
 .node-circle.expanded {
   stroke: #10b981;
   stroke-width: 2px;
-  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.5)); /* Reduced glow */
 }
 
 .node-circle.highlighted {
   stroke: #ef4444;
   stroke-width: 3px;
-  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.7));
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6)); /* Reduced glow */
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.8;
-  }
-}
+/* Removed pulse animation to improve performance */
 
 .node-text {
   font-size: 13px; /* Increased from 11px */
@@ -204,14 +194,13 @@ input[type="range"]::-moz-range-thumb {
 .neighbor-count-bg {
   fill: rgba(251, 191, 36, 0.2);
   stroke: #fbbf24;
-  stroke-width: 1.5px; /* Increased from 1px */
-  transition: all 0.2s ease;
+  stroke-width: 1.5px;
+  transition: fill 0.15s ease, stroke-width 0.15s ease; /* Simplified transitions */
 }
 
 .neighbor-indicator:hover .neighbor-count-bg {
   fill: rgba(251, 191, 36, 0.4);
-  stroke-width: 2.5px; /* Increased from 2px */
-  transform: scale(1.1);
+  stroke-width: 2.5px;
 }
 
 .neighbor-indicator:hover .neighbor-count {
@@ -225,36 +214,26 @@ input[type="range"]::-moz-range-thumb {
   stroke-width: 1px;
   stroke-opacity: 0.4;
   fill: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: stroke 0.2s ease, stroke-width 0.2s ease; /* Simplified transitions */
 }
 
 .link.highlighted {
   stroke: #7c3aed;
   stroke-width: 2px;
   stroke-opacity: 0.8;
-  filter: drop-shadow(0 0 4px rgba(124, 58, 237, 0.4));
-  animation: linkPulse 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(124, 58, 237, 0.3)); /* Reduced glow */
 }
 
 .link.selected-path {
   stroke: #fbbf24;
   stroke-width: 3px;
   stroke-opacity: 1;
-  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.5)); /* Reduced glow */
   stroke-dasharray: 5, 5;
   animation: dash 1s linear infinite;
 }
 
-@keyframes linkPulse {
-  0%,
-  100% {
-    stroke-opacity: 0.8;
-  }
-  50% {
-    stroke-opacity: 1;
-  }
-}
-
+/* Simplified link animations for better performance */
 @keyframes dash {
   0% {
     stroke-dashoffset: 0;
