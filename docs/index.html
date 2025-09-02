@@ -2,8 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>CodeMapper</title>
+    <title>CodeMapper - Interactive Go Code Visualizer</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Analyze large Go codebases and visualize function dependencies with interactive graphs. Modern UI inspired by n8n.io."
+    />
+    <meta
+      name="keywords"
+      content="Go, Golang, code analysis, dependency visualization, interactive graphs, software architecture"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -74,6 +88,142 @@
           <li>Generates a dependency map (JSON).</li>
           <li>Serves an interactive visualization.</li>
         </ol>
+      </section>
+
+      <section>
+        <h2>Comparison with Other Go Code Visualizers 🔍</h2>
+        <p>
+          CodeMapper stands out from other Go code visualization tools with its
+          unique combination of features and modern UI design.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Tool</th>
+              <th>Stars</th>
+              <th>Visualization Type</th>
+              <th>Key Features</th>
+              <th>Interactivity</th>
+              <th>Output Format</th>
+              <th>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="highlight">
+              <td><span class="tool-name">CodeMapper</span></td>
+              <td><span class="star-rating">⭐ New</span></td>
+              <td><strong>Dual Mode</strong>: Flow + Obsidian-style Graph</td>
+              <td>
+                Function-level analysis, dual visualization modes, real-time
+                search, expandable neighbors, context menus
+              </td>
+              <td>
+                <strong>High</strong> (drag, zoom, expand/collapse, search)
+              </td>
+              <td>Web-based (JSON data)</td>
+              <td>Active</td>
+            </tr>
+            <tr>
+              <td>
+                <a
+                  href="https://github.com/rodrigo-brito/gocity"
+                  target="_blank"
+                  >gocity</a
+                >
+              </td>
+              <td><span class="star-rating">⭐ 1.8K</span></td>
+              <td>3D City metaphor</td>
+              <td>Code as buildings, 3D visualization, complexity metrics</td>
+              <td>Medium (3D navigation)</td>
+              <td>Web-based</td>
+              <td>Dec 2023</td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://github.com/kisielk/godepgraph" target="_blank"
+                  >godepgraph</a
+                >
+              </td>
+              <td><span class="star-rating">⭐ 1.2K</span></td>
+              <td>Static dependency graph</td>
+              <td>Package-level dependencies, Graphviz output</td>
+              <td>Low (static images)</td>
+              <td>DOT/PNG/SVG</td>
+              <td>Jun 2024</td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://github.com/KyleBanks/depth" target="_blank"
+                  >depth</a
+                >
+              </td>
+              <td><span class="star-rating">⭐ 1K</span></td>
+              <td>Tree visualization</td>
+              <td>Dependency tree, CLI output, import analysis</td>
+              <td>Low (CLI tree)</td>
+              <td>Terminal/JSON</td>
+              <td>Feb 2022</td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://github.com/hirokidaichi/goviz" target="_blank"
+                  >goviz</a
+                >
+              </td>
+              <td><span class="star-rating">⭐ 708</span></td>
+              <td>Graph visualization</td>
+              <td>Package dependencies, Graphviz integration</td>
+              <td>Low (static graphs)</td>
+              <td>DOT format</td>
+              <td>Feb 2017</td>
+            </tr>
+            <tr>
+              <td>
+                <a
+                  href="https://github.com/bayraktugrul/modview"
+                  target="_blank"
+                  >modview</a
+                >
+              </td>
+              <td><span class="star-rating">⭐ 217</span></td>
+              <td>Module graph</td>
+              <td>Go module visualization, external dependencies</td>
+              <td>Medium (web interface)</td>
+              <td>Web-based</td>
+              <td>Dec 2024</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Why Choose CodeMapper? ✨</h3>
+        <ul>
+          <li>
+            <strong>🎯 Function-Level Analysis</strong>: Unlike most tools that
+            only show package-level dependencies, CodeMapper analyzes individual
+            functions and methods
+          </li>
+          <li>
+            <strong>🔄 Dual Visualization Modes</strong>: Choose between
+            traditional flow diagrams and modern Obsidian-style graphs
+          </li>
+          <li>
+            <strong>🎮 High Interactivity</strong>: Real-time search, expandable
+            neighbors, context menus, and smooth interactions
+          </li>
+          <li>
+            <strong>📊 Rich Details</strong>: Function signatures, file
+            locations, line numbers, and comprehensive metadata
+          </li>
+          <li>
+            <strong>🚀 Modern UI</strong>: Inspired by n8n.io with beautiful,
+            responsive design
+          </li>
+          <li>
+            <strong>🔍 Advanced Features</strong>: Path highlighting,
+            backtracking, keyboard shortcuts, and export capabilities
+          </li>
+        </ul>
       </section>
 
       <section>

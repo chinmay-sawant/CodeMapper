@@ -41,6 +41,28 @@ Analyzing over **40+ repositories** for a recent project was extremely time-cons
 
 ---
 
+## Comparison with Other Go Code Visualizers 🔍
+
+| Tool | Stars | Visualization Type | Key Features | Interactivity | Output Format | Last Updated |
+|------|-------|-------------------|--------------|---------------|---------------|--------------|
+| **[CodeMapper](https://github.com/chinmay-sawant/CodeMapper)** | ⭐ New | **Dual Mode**: Flow + Obsidian-style Graph | Function-level analysis, dual visualization modes, real-time search, expandable neighbors, context menus | High (drag, zoom, expand/collapse, search) | Web-based (JSON data) | Active |
+| **[gocity](https://github.com/rodrigo-brito/gocity)** | ⭐ 1.8K | 3D City metaphor | Code as buildings, 3D visualization, complexity metrics | Medium (3D navigation) | Web-based | Dec 2023 |
+| **[godepgraph](https://github.com/kisielk/godepgraph)** | ⭐ 1.2K | Static dependency graph | Package-level dependencies, Graphviz output | Low (static images) | DOT/PNG/SVG | Jun 2024 |
+| **[depth](https://github.com/KyleBanks/depth)** | ⭐ 1K | Tree visualization | Dependency tree, CLI output, import analysis | Low (CLI tree) | Terminal/JSON | Feb 2022 |
+| **[goviz](https://github.com/hirokidaichi/goviz)** | ⭐ 708 | Graph visualization | Package dependencies, Graphviz integration | Low (static graphs) | DOT format | Feb 2017 |
+| **[modview](https://github.com/bayraktugrul/modview)** | ⭐ 217 | Module graph | Go module visualization, external dependencies | Medium (web interface) | Web-based | Dec 2024 |
+
+### Why Choose CodeMapper? ✨
+
+- **🎯 Function-Level Analysis**: Unlike most tools that only show package-level dependencies, CodeMapper analyzes individual functions and methods
+- **🔄 Dual Visualization Modes**: Choose between traditional flow diagrams and modern Obsidian-style graphs
+- **🎮 High Interactivity**: Real-time search, expandable neighbors, context menus, and smooth interactions
+- **📊 Rich Details**: Function signatures, file locations, line numbers, and comprehensive metadata
+- **🚀 Modern UI**: Inspired by n8n.io with beautiful, responsive design
+- **🔍 Advanced Features**: Path highlighting, backtracking, keyboard shortcuts, and export capabilities
+
+---
+
 ## Installation 🛠️
 
 ### Backend (Go)
