@@ -55,11 +55,21 @@ The new Obsidian-style Graph View provides an intuitive way to explore code depe
 
 ## Visual Cues
 
+### Nodes
 - **Yellow outline**: Selected node
 - **Green outline**: Expanded nodes with all neighbors shown
 - **Red outline**: Highlighted during hover
 - **Pulsing animation**: Currently selected node
-- **Animated links**: Show direction and active connections
+
+### Links (Relationships)
+- **Blue dotted lines**: Dependency relationships (A calls B, so B is a dependency of A)
+- **Thicker lines when highlighted**: Shows active connections during hover
+- **Animated yellow lines**: Selected path during exploration
+- **All connections are dotted**: Clear visual distinction from solid UI elements
+
+### Interaction Indicators
+- **Circular badges with numbers**: Hidden neighbor count - click to expand
+- **Hover effects**: Temporary highlighting of connected nodes and relationships
 
 ## Performance
 

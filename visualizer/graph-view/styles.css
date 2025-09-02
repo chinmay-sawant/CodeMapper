@@ -212,23 +212,44 @@ input[type="range"]::-moz-range-thumb {
 .link {
   stroke: #606060;
   stroke-width: 1px;
-  stroke-opacity: 0.4;
+  stroke-opacity: 0.5;
   fill: none;
-  transition: stroke 0.2s ease, stroke-width 0.2s ease; /* Simplified transitions */
+  stroke-dasharray: 4, 4; /* Default dotted pattern */
+  stroke-linecap: round;
+  transition: stroke 0.2s ease, stroke-width 0.2s ease;
+}
+
+/* Dependency links (caller -> dependency) - Blue dotted */
+.link.dependency {
+  stroke: #3b82f6;
+  stroke-width: 1.5px;
+  stroke-opacity: 0.7;
+  stroke-dasharray: 5, 3; /* Distinctive dotted pattern */
+  stroke-linecap: round;
+}
+
+/* Called-by links (for future use) - Green dotted */
+.link.called-by {
+  stroke: #10b981;
+  stroke-width: 1.5px;
+  stroke-opacity: 0.7;
+  stroke-dasharray: 3, 5; /* Different pattern to distinguish from dependencies */
+  stroke-linecap: round;
 }
 
 .link.highlighted {
   stroke: #7c3aed;
-  stroke-width: 2px;
-  stroke-opacity: 0.8;
-  filter: drop-shadow(0 0 3px rgba(124, 58, 237, 0.3)); /* Reduced glow */
+  stroke-width: 2.5px;
+  stroke-opacity: 0.9;
+  stroke-dasharray: 6, 3;
+  filter: drop-shadow(0 0 4px rgba(124, 58, 237, 0.4));
 }
 
 .link.selected-path {
   stroke: #fbbf24;
   stroke-width: 3px;
   stroke-opacity: 1;
-  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.5)); /* Reduced glow */
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.5));
   stroke-dasharray: 5, 5;
   animation: dash 1s linear infinite;
 }

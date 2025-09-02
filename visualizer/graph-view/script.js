@@ -400,10 +400,16 @@ class GraphView {
 
         const linkEnter = linkSelection.enter()
             .append('line')
-            .attr('class', 'link')
-            .style('stroke', '#4b5563')
-            .style('stroke-width', 1)
-            .style('opacity', 0.4);
+            .attr('class', d => {
+                // All links in our data represent dependency relationships
+                // (source calls target, so target is a dependency of source)
+                return `link dependency`;
+            })
+            .style('stroke', '#3b82f6') // Blue for dependencies
+            .style('stroke-width', 1.5)
+            .style('stroke-opacity', 0.7)
+            .style('stroke-dasharray', '5,3') // Dotted lines with distinctive pattern
+            .style('stroke-linecap', 'round'); // Rounded line caps for better appearance
 
         // Store reference for efficient updates
         this.cachedLinkElements = linkEnter.merge(linkSelection);
@@ -550,46 +556,6 @@ class GraphView {
             this.hideTooltip();
             this.clearHighlights();
         });
-    }
-            .attr('y', -18) // Adjusted for larger circles
-            .text(d => this.getHiddenNeighborCount(d));
-
-        // Add click handler for neighbor indicator
-        neighborGroup.on('click', (event, d) => {
-            event.stopPropagation();
-            this.expandNode(d);
-        });
-
-        // Add click handlers
-        nodeEnter.on('click', (event, d) => {
-            event.stopPropagation();
-            this.handleNodeClick(d);
-        });
-
-        nodeEnter.on('contextmenu', (event, d) => {
-            event.preventDefault();
-            this.showContextMenu(event, d);
-        });
-
-        // Add hover effects
-        nodeEnter.on('mouseenter', (event, d) => {
-            this.showTooltip(event, d);
-            this.highlightNeighbors(d);
-        });
-
-        nodeEnter.on('mouseleave', () => {
-            this.hideTooltip();
-            this.clearHighlights();
-        });
-
-        // Merge with existing nodes
-        nodeSelection.merge(nodeEnter)
-            .select('.neighbor-indicator')
-            .style('display', d => this.shouldShowNeighborCount(d) ? 'block' : 'none');
-
-        nodeSelection.merge(nodeEnter)
-            .select('.neighbor-count')
-            .text(d => this.getHiddenNeighborCount(d));
     }
 
     updateSimulation() {
