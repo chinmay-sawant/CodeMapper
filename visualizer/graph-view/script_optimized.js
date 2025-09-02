@@ -978,7 +978,7 @@ class GraphView {
 
         this.svg.transition()
             .duration(750)
-            .call(this.svg.call(d3.zoom()).transform, transform);
+            .call(this.zoom.transform, transform);
     }
 
     centerGraph() {

@@ -167,13 +167,13 @@ class GraphView {
             .attr('height', rect.height);
 
         // Create zoom behavior with optimized handling
-        const zoom = d3.zoom()
+        this.zoom = d3.zoom()
             .scaleExtent([0.1, 10])
             .on('zoom', (event) => {
                 this.handleZoom(event);
             });
 
-        this.svg.call(zoom);
+        this.svg.call(this.zoom);
 
         // Create main group for graph elements
         this.g = this.svg.append('g');
@@ -897,7 +897,7 @@ class GraphView {
 
         this.svg.transition()
             .duration(750)
-            .call(d3.zoom().transform, transform);
+            .call(this.zoom.transform, transform);
     }
 
     centerGraph() {
@@ -920,7 +920,7 @@ class GraphView {
 
         this.svg.transition()
             .duration(750)
-            .call(d3.zoom().transform, transform);
+            .call(this.zoom.transform, transform);
     }
 
     resetView() {
