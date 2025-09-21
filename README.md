@@ -1,3 +1,6 @@
+# For the future updates use the below repository instead of CodeMapper
+   - https://github.com/chinmay-sawant/gomindmapper
+
 # CodeMapper 🗺️
 
 ## Overview
